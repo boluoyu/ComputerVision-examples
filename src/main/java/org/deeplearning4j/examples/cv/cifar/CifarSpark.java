@@ -12,6 +12,7 @@ import org.apache.spark.input.PortableDataStream;
 import org.canova.image.loader.CifarLoader;
 import org.canova.spark.functions.data.FilesAsBytesFunction;
 import org.deeplearning4j.eval.Evaluation;
+import org.deeplearning4j.examples.cv.cifar.TestModels.Model1;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.GradientNormalization;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
@@ -82,7 +83,6 @@ public class CifarSpark {
         JavaPairRDD<Double, DataSet> trainData = filesAsBytes.mapToPair(new CanovaByteDataSetFunction(0, CifarLoader.NUM_LABELS, batchSize, CifarLoader.BYTEFILELEN));
 
 //        JavaRDD<DataSet> train = filesAsBytes.map(new CanovaByteDataSetFunction(0, CifarLoader.NUM_LABELS, batchSize, numTrainSamples, CifarLoader.BYTEFILELEN));
-
         JavaRDD<DataSet> train = trainData.map(new Function<Tuple2<Double, DataSet>, DataSet>() {
             @Override
             public DataSet call(Tuple2<Double,DataSet> ds) throws Exception {
@@ -103,65 +103,7 @@ public class CifarSpark {
 
 
         log.info("Build model....");
-        MultiLayerConfiguration.Builder builder = new NeuralNetConfiguration.Builder()
-                .seed(seed)
-                .iterations(iterations)
-                .activation("relu")
-                .weightInit(WeightInit.XAVIER) // consider standard distribution with std .05
-                .gradientNormalization(GradientNormalization.RenormalizeL2PerLayer)
-                .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                .learningRate(0.01)
-                .momentum(0.9)
-                .regularization(true)
-                .l2(0.04)
-                .updater(Updater.NESTEROVS)
-                .useDropConnect(true)
-                .list(10)
-                .layer(0, new ConvolutionLayer.Builder(5, 5)
-                        .name("cnn1")
-                        .nIn(CHANNELS)
-                        .stride(1, 1)
-                        .padding(2, 2)
-                        .nOut(32)
-                        .build())
-                .layer(1, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{3, 3})
-                        .name("pool1")
-                        .build())
-                .layer(2, new LocalResponseNormalization.Builder(3, 5e-05, 0.75).build())
-                .layer(3, new ConvolutionLayer.Builder(5, 5)
-                        .name("cnn2")
-                        .stride(1, 1)
-                        .padding(2, 2)
-                        .nOut(32)
-                        .build())
-                .layer(4, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{3, 3})
-                        .name("pool2")
-                        .build())
-                .layer(5, new LocalResponseNormalization.Builder(3, 5e-05, 0.75).build())
-                .layer(6, new ConvolutionLayer.Builder(5, 5)
-                        .name("cnn3")
-                        .stride(1, 1)
-                        .padding(2, 2)
-                        .nOut(64)
-                        .build())
-                .layer(7, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{3, 3})
-                        .name("pool3")
-                        .build())
-                .layer(8, new DenseLayer.Builder()
-                        .name("ffn1")
-                        .nOut(250)
-                        .dropOut(0.5)
-                        .build())
-                .layer(9, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
-                        .nOut(outputNum)
-                        .activation("softmax")
-                        .build())
-                .backprop(true).pretrain(false)
-
-                .cnnInputSize(HEIGHT, WIDTH, CHANNELS);
-
-        MultiLayerConfiguration conf = builder.build();
-        MultiLayerNetwork network = new MultiLayerNetwork(conf);
+        MultiLayerNetwork network = new Model1(HEIGHT, WIDTH, outputNum, CHANNELS, seed, iterations).init();
         network.setListeners(Arrays.asList((IterationListener) new ScoreIterationListener(listenerFreq)));
 
         //Create Spark multi layer network from configuration

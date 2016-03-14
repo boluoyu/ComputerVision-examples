@@ -6,6 +6,7 @@ import org.deeplearning4j.datasets.iterator.MultipleEpochsIterator;
 import org.deeplearning4j.datasets.iterator.impl.CifarDataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.examples.cv.cifar.TestModels.BatchNormModel;
+import org.deeplearning4j.examples.cv.cifar.TestModels.Model1;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.GradientNormalization;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
@@ -40,6 +41,9 @@ import java.util.Arrays;
  *
  */
 public class Cifar {
+
+    public static final boolean norm = false; // change to true to run BatchNorm model - not currently broken
+
     public static void main(String[] args) throws IOException {
         Nd4j.dtype = DataBuffer.Type.DOUBLE;
 
@@ -60,7 +64,12 @@ public class Cifar {
         MultipleEpochsIterator cifar = new MultipleEpochsIterator(epochs, new CifarDataSetIterator(batchSize, numTrainSamples, "TRAIN"));
 
         //setup the network
-        MultiLayerNetwork network = new BatchNormModel(height, width, outputNum, channels, seed, iterations).init();
+        MultiLayerNetwork network;
+        if(norm)
+            network = new BatchNormModel(height, width, outputNum, channels, seed, iterations).init();
+        else
+            network = new Model1(height, width, outputNum, channels, seed, iterations).init();
+
         network.setListeners(Arrays.asList((IterationListener) new ScoreIterationListener(listenerFreq)));
 
         System.out.println("Train model...");
