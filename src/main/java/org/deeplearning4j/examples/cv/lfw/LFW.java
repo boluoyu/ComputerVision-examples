@@ -60,11 +60,11 @@ public class LFW {
 
         final int numRows = 40;
         final int numColumns = 40;
-        int nChannels = 3;
-        int outputNum = LFWLoader.NUM_LABELS;
+        final int nChannels = 3;
+        int outputNum = 20;
         int numSamples = 1000; // LFWLoader.NUM_IMAGES;
         boolean useSubset = false;
-        int batchSize = 200;// numSamples/10;
+        int batchSize = 10;// numSamples/10;
         int iterations = 5;
         int splitTrainNum = (int) (batchSize*.8);
         int seed = 123;

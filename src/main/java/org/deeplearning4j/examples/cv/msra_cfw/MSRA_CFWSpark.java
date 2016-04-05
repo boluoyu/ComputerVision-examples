@@ -55,8 +55,8 @@ public class MSRA_CFWSpark {
 
     public final static int NUM_IMAGES = 2215; // some are 50 and others 700
     public final static int NUM_LABELS = 10;
-    public final static int WIDTH = 40; // size varies
     public final static int HEIGHT = 40;
+    public final static int WIDTH = 40; // size varies
     public final static int CHANNELS = 3;
 
     // values to pass in from command line when compiled, esp running remotely
@@ -158,7 +158,7 @@ public class MSRA_CFWSpark {
         ////////////// Load files to DS and parallelize - seems to load more examples /////////////
 //        File mainPath = new File(BaseImageLoader.BASE_DIR, "thumbnails_features_deduped_sample");
 
-        RecordReader recordReader = new ImageRecordReader(WIDTH, HEIGHT, CHANNELS, appendLabels, labels);
+        RecordReader recordReader = new ImageRecordReader(HEIGHT, WIDTH, CHANNELS, appendLabels, labels);
         try {
             recordReader.initialize(new FileSplit(mainPath, BaseImageLoader.ALLOWED_FORMATS, new Random(123)));
         } catch (IOException | InterruptedException e) {

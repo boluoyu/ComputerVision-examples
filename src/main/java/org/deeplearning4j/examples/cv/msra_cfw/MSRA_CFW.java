@@ -57,8 +57,8 @@ public class MSRA_CFW {
     // based on small sample
     public final static int NUM_IMAGES = 2215; // # examples per person range 50 to 700
     public final static int NUM_LABELS = 10;
-    public final static int WIDTH = 100; // size varies
     public final static int HEIGHT = 100;
+    public final static int WIDTH = 100; // size varies
     public final static int CHANNELS = 3;
 
     // values to pass in from command line when compiled, esp running remotely
@@ -131,7 +131,7 @@ public class MSRA_CFW {
         File mainPath = new File(BaseImageLoader.BASE_DIR, "gender_class"); // 2 labels
         List<String> labels = Arrays.asList(new String[]{"man", "woman"});
 
-        RecordReader recordReader = new ImageRecordReader(WIDTH, HEIGHT, CHANNELS, appendLabels);
+        RecordReader recordReader = new ImageRecordReader(HEIGHT, WIDTH, CHANNELS, appendLabels);
         try {
             recordReader.initialize(new LimitFileSplit(mainPath, BaseImageLoader.ALLOWED_FORMATS, numExamples, numLabels, null, new Random(123)));
         } catch (IOException | InterruptedException e) {

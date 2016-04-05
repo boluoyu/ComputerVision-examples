@@ -21,6 +21,7 @@ import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.api.IterationListener;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.nd4j.linalg.api.buffer.DataBuffer;
+import org.nd4j.linalg.api.buffer.util.DataTypeUtil;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
@@ -42,10 +43,14 @@ import java.util.Arrays;
  */
 public class Cifar {
 
-    public static final boolean norm = false; // change to true to run BatchNorm model - not currently broken
+    public static final boolean norm = true; // change to true to run BatchNorm model - not currently broken
+    static {
+        //Force Nd4j initialization, then set data type to double:
+        Nd4j.zeros(1);
+        DataTypeUtil.setDTypeForContext(DataBuffer.Type.DOUBLE);
+    }
 
     public static void main(String[] args) throws IOException {
-        Nd4j.dtype = DataBuffer.Type.DOUBLE;
 
         int height = 32;
         int width = 32;
