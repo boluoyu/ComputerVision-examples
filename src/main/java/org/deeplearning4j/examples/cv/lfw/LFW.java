@@ -61,7 +61,7 @@ public class LFW {
         final int numRows = 40;
         final int numColumns = 40;
         final int nChannels = 3;
-        int outputNum = 20;
+        int outputNum = LFWLoader.NUM_LABELS;
         int numSamples = 10; // LFWLoader.NUM_IMAGES;
         boolean useSubset = false;
         int batchSize = 10;// numSamples/10;
