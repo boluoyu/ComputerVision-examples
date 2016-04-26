@@ -62,10 +62,10 @@ public class LFW {
         final int numColumns = 40;
         final int nChannels = 3;
         int outputNum = 20;
-        int numSamples = 1000; // LFWLoader.NUM_IMAGES;
+        int numSamples = 10; // LFWLoader.NUM_IMAGES;
         boolean useSubset = false;
         int batchSize = 10;// numSamples/10;
-        int iterations = 5;
+        int iterations = 1;
         int splitTrainNum = (int) (batchSize*.8);
         int seed = 123;
         int listenerFreq = iterations/5;
@@ -89,6 +89,7 @@ public class LFW {
                 .learningRate(0.01)
                 .momentum(0.9)
                 .regularization(true)
+                .l2(1e-3)
                 .updater(Updater.ADAGRAD)
                 .useDropConnect(true)
                 .list()

@@ -69,7 +69,7 @@ public class MSRA_CFW {
     @Option(name="--epochs",usage="Number of epochs",aliases="-ep")
     protected int epochs = 5;
     @Option(name="--iter",usage="Number of iterations",aliases="-i")
-    protected int iterations = 5;
+    protected int iterations = 1;
     @Option(name="--numLabels",usage="Number of categories",aliases="-nL")
     protected int numLabels = 2;
 
@@ -78,7 +78,7 @@ public class MSRA_CFW {
     @Option(name="--activation",usage="Activation function to use",aliases="-a")
     protected String activation = "relu";
     @Option(name="--updater",usage="Updater to apply gradient changes",aliases="-up")
-    protected Updater updater = Updater.ADAM;
+    protected Updater updater = Updater.NESTEROVS;
     @Option(name="--learningRate", usage="Learning rate", aliases="-lr")
     protected double lr = 1e-3;
     @Option(name="--momentum",usage="Momentum rate",aliases="-mu")
