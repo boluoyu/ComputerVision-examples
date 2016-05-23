@@ -12,7 +12,7 @@ import org.apache.spark.input.PortableDataStream;
 import org.canova.image.loader.CifarLoader;
 import org.canova.spark.functions.data.FilesAsBytesFunction;
 import org.deeplearning4j.eval.Evaluation;
-import org.deeplearning4j.examples.cv.cifar.TestModels.Model1;
+import org.deeplearning4j.examples.cv.cifar.TestModels.LRNModel;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.api.IterationListener;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
@@ -95,7 +95,7 @@ public class CifarSpark {
 
 
         log.info("Build model....");
-        MultiLayerNetwork network = new Model1(HEIGHT, WIDTH, outputNum, CHANNELS, seed, iterations).init();
+        MultiLayerNetwork network = new LRNModel(HEIGHT, WIDTH, outputNum, CHANNELS, seed, iterations).init();
         network.setListeners(Arrays.asList((IterationListener) new ScoreIterationListener(listenerFreq)));
 
         //Create Spark multi layer network from configuration

@@ -11,6 +11,7 @@
     <url>http://maven.apache.org</url>
 
     <properties>
+        <nd4j.backend>nd4j-native</nd4j.backend>
         <nd4j.version>0.4-rc3.10-SNAPSHOT</nd4j.version>
         <dl4j.version>0.4-rc3.10-SNAPSHOT</dl4j.version>
         <canova.version>0.0.0.16-SNAPSHOT</canova.version>
@@ -18,7 +19,6 @@
         <scala.binary.version>2.10</scala.binary.version>
         <spark.version>1.5.2</spark.version>
         <jackson.version>2.4.4</jackson.version>
-
     </properties>
 
     <repositories>
@@ -47,6 +47,7 @@
         </repository>
     </distributionManagement>
 
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -56,11 +57,12 @@
             </dependency>
             <dependency>
                 <groupId>org.nd4j</groupId>
-                <artifactId>nd4j-jcublas-7.0</artifactId>
+                <artifactId>nd4j-cuda-7.5</artifactId>
                 <version>${nd4j.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.deeplearning4j</groupId>
@@ -101,7 +103,7 @@
         </dependency>
         <dependency>
             <groupId>org.nd4j</groupId>
-            <artifactId>nd4j-native</artifactId>
+            <artifactId>${nd4j.backend}</artifactId>
         </dependency>
 
         <!-- Force version of Guava, instead of 15.0 pulled in as a transitive dependency with jackson-datatype-guava... -->

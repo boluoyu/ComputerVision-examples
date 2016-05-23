@@ -9,10 +9,12 @@ import org.deeplearning4j.nn.weights.WeightInit;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 /**
+ *
+ * Model based on:
  * Model: https://gist.github.com/mavenlin/e56253735ef32c3c296d
  * Paper: http://arxiv.org/pdf/1312.4400v3.pdf
  */
-public class Model2 {
+public class Model4 {
 
     private int height;
     private int width;
@@ -21,7 +23,7 @@ public class Model2 {
     private long seed;
     private int iterations;
 
-    public Model2(int height, int width, int outputNum, int channels, long seed, int iterations) {
+    public Model4(int height, int width, int channels, int outputNum, long seed, int iterations) {
         this.height = height;
         this.width = width;
         this.channels = channels;

@@ -9,20 +9,22 @@ import org.deeplearning4j.nn.weights.WeightInit;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 /**
- * BatchNorm Cifar10
- *  Model based on:
- *  https://github.com/BVLC/caffe/blob/master/examples/cifar10/cifar10_full_sigmoid_solver_bn.prototxt
- *  https://github.com/BVLC/caffe/blob/master/examples/cifar10/cifar10_full_sigmoid_train_test_bn.prototxt
+ *
+ * Short Cifar10
+ *
+ * Model based on:
+ * http://caffe.berkeleyvision.org/gathered/examples/cifar10.html
+ * https://github.com/BVLC/caffe/blob/master/examples/cifar10/cifar10_quick_train_test.prototxt
  */
-public class BatchNormModel {
+public class QuickModel {
     private int height;
     private int width;
-    private int channels = 3;
+    private int channels;
     private int outputNum;
     private long seed;
     private int iterations;
 
-    public BatchNormModel(int height, int width,int channels,  int outputNum, long seed, int iterations) {
+    public QuickModel(int height, int width, int channels, int outputNum, long seed, int iterations) {
         this.height = height;
         this.width = width;
         this.channels = channels;
@@ -34,15 +36,14 @@ public class BatchNormModel {
         MultiLayerConfiguration.Builder builder = new NeuralNetConfiguration.Builder()
                 .seed(seed)
                 .iterations(iterations)
-                .weightInit(WeightInit.DISTRIBUTION) // consider standard distribution with std .05
+                .activation("relu")
+                .weightInit(WeightInit.DISTRIBUTION)
                 .dist(new GaussianDistribution(0, 1e-4))
                 .gradientNormalization(GradientNormalization.RenormalizeL2PerLayer)
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .learningRate(0.001)
-                .learningRateDecayPolicy(LearningRatePolicy.Step)
-                .lrPolicyDecayRate(1)
-                .biasLearningRate(0.1*2)
-                .lrPolicySteps(5000)
+                .biasLearningRate(2e-3)
+                .learningRateDecayPolicy(LearningRatePolicy.None)
                 .updater(Updater.NESTEROVS)
                 .momentum(0.9)
                 .regularization(true)
@@ -54,42 +55,36 @@ public class BatchNormModel {
                         .stride(1, 1)
                         .padding(2, 2)
                         .nOut(32)
-                        .activation("identity")
                         .build())
                 .layer(1, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{3, 3})
                         .name("pool1")
                         .build())
-                .layer(2, new BatchNormalization.Builder().build())
-                .layer(3, new ActivationLayer.Builder().activation("sigmoid").build())
-                .layer(4, new ConvolutionLayer.Builder(5, 5)
+                .layer(2, new ConvolutionLayer.Builder(5, 5)
                         .name("cnn2")
                         .stride(1, 1)
                         .padding(2, 2)
                         .nOut(32)
-                        .activation("identity")
-                        .biasInit(0)
-                        .dist(new GaussianDistribution(0, 1e-2))
                         .build())
-                .layer(5, new BatchNormalization.Builder().build())
-                .layer(6, new ActivationLayer.Builder().activation("sigmoid").build())
-                .layer(7, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{3, 3})
+                .layer(3, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{3, 3})
                         .name("pool2")
                         .build())
-                .layer(8, new ConvolutionLayer.Builder(5, 5)
+                .layer(4, new ConvolutionLayer.Builder(5, 5)
                         .name("cnn3")
                         .stride(1, 1)
                         .padding(2, 2)
                         .nOut(64)
-                        .activation("identity")
-                        .biasInit(0)
                         .dist(new GaussianDistribution(0, 1e-2))
                         .build())
-                .layer(9, new BatchNormalization.Builder().build())
-                .layer(10, new ActivationLayer.Builder().activation("sigmoid").build())
-                .layer(11, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{3, 3})
+                .layer(5, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{3, 3})
                         .name("pool3")
                         .build())
-                .layer(12, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
+                .layer(6, new DenseLayer.Builder()
+                        .name("ffn1")
+                        .nOut(64)
+                        .dropOut(0.5)
+                        .dist(new GaussianDistribution(0, 1e-2))
+                        .build())
+                .layer(7, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
                         .nOut(outputNum)
                         .weightInit(WeightInit.XAVIER)
                         .activation("softmax")
