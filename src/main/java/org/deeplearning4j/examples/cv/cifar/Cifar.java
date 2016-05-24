@@ -67,7 +67,7 @@ public class Cifar {
 //            epochs = 1;
             epochs = 6;
 //            epochs = 120;
-            cifar = new MultipleEpochsIterator(epochs, new CifarDataSetIterator(batchSize, numTrainSamples, "TRAIN"));
+            cifar = new MultipleEpochsIterator(epochs, new CifarDataSetIterator(batchSize, numTrainSamples, new int[] {height, width, channels}, "TRAIN"));
 //            network = new QuickModel(height, width, channels, outputNum, seed, iterations).init();
             network = new LRNModel(height, width, channels, outputNum, seed, iterations).init();
 //            network = new Model4(height, width, channels, outputNum, seed, iterations).init();
@@ -77,7 +77,7 @@ public class Cifar {
         System.out.println("Train model...");
         network.fit(cifar);
 
-        CifarDataSetIterator cifarTest = new CifarDataSetIterator(batchSize, numTestSamples, "TEST");
+        CifarDataSetIterator cifarTest = new CifarDataSetIterator(batchSize, numTestSamples, new int[] {height, width, channels}, "TEST");
         Evaluation eval = new Evaluation(cifarTest.getLabels());
         while(cifarTest.hasNext()) {
             DataSet testDS = cifarTest.next(batchSize);
