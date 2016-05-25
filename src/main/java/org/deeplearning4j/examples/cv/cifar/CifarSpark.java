@@ -31,13 +31,9 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * CIFAR-10 is an image dataset created by Alex Krizhevsky, Vinod Nair, and Geoffrey Hinton. The dataset inculdes 60K
- * tiny RGB images sized 32 x 32 pixels covering 10 classes. There are 50K training images and 10K test images.
+ * CIFAR-10 - Spark version
  *
- * Use this example to run cifar-10.
- *
- * Reference: https://www.cs.toronto.edu/~kriz/cifar.html
- * Dataset url: https://s3.amazonaws.com/dl4j-distribution/cifar-small.bin
+ * Not working due to recent changes in core
  */
 
 public class CifarSpark {

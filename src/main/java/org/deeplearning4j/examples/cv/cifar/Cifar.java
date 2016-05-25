@@ -21,7 +21,9 @@ import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.factory.Nd4j;
 
 /**
- * CIFAR-10 is an image dataset created by Alex Krizhevsky, Vinod Nair, and Geoffrey Hinton. The dataset inculdes 60K
+ * CIFAR-10
+ *
+ * Image dataset created by Alex Krizhevsky, Vinod Nair, and Geoffrey Hinton. The dataset inculdes 60K
  * tiny RGB images sized 32 x 32 pixels covering 10 classes. There are 50K training images and 10K test images.
  *
  * Use this example to run cifar-10.
