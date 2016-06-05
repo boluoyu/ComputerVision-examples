@@ -73,7 +73,7 @@ public class LFWSpark {
         JavaSparkContext sc = new JavaSparkContext(sparkConf);
 
         log.info("Load data....");
-        DataSetIterator lfw = new LFWDataSetIterator(batchSize, numSamples, new int[]{HEIGHT, WIDTH, CHANNELS}, outputNum, useSubset, new Random(seed));
+        DataSetIterator lfw = new LFWDataSetIterator(batchSize, numSamples, new int[]{HEIGHT, WIDTH, CHANNELS}, outputNum, useSubset, true, new Random(seed));
         List<String> labels = lfw.getLabels();
 
         List<DataSet> train = new ArrayList<>(nTrain);

@@ -1,9 +1,11 @@
 package org.deeplearning4j.examples.cv.msra_cfw;
 
 
+import org.canova.api.io.labels.ParentPathLabelGenerator;
 import org.canova.api.records.reader.RecordReader;
 import org.canova.api.split.LimitFileSplit;
 import org.canova.image.loader.BaseImageLoader;
+import org.canova.image.recordreader.BaseImageRecordReader;
 import org.canova.image.recordreader.ImageRecordReader;
 import org.deeplearning4j.AlexNet;
 import org.deeplearning4j.datasets.canova.RecordReaderDataSetIterator;
@@ -110,7 +112,12 @@ public class MSRA_CFW {
             mainPath = new File(BaseImageLoader.BASE_DIR, "thumbnails_features_deduped_sample"); // 10 labels
         }
 
-        RecordReader recordReader = new ImageRecordReader(HEIGHT, WIDTH, CHANNELS, appendLabels);
+        RecordReader recordReader = new BaseImageRecordReader(HEIGHT, WIDTH, CHANNELS, new ParentPathLabelGenerator()) {
+            @Override
+            protected boolean containsFormat(String format) {
+                return super.containsFormat(format);
+            }
+        };
         try {
             recordReader.initialize(new LimitFileSplit(mainPath, BaseImageLoader.ALLOWED_FORMATS, numExamples, numLabels, null, new Random(123)));
         } catch (IOException | InterruptedException e) {

@@ -48,8 +48,8 @@ public class Cifar {
         int height = 32;
         int width = 32;
         int channels = 3;
-        int numTrainSamples = CifarLoader.NUM_TRAIN_IMAGES;
-        int numTestSamples = CifarLoader.NUM_TEST_IMAGES;
+        int numTrainSamples = 100;//CifarLoader.NUM_TRAIN_IMAGES;
+        int numTestSamples = 100; //CifarLoader.NUM_TEST_IMAGES;
         int batchSize = 100;
 
         int outputNum = 10;
@@ -63,11 +63,11 @@ public class Cifar {
         MultiLayerNetwork network;
         if(norm) {
             epochs = 1;
-            cifar = new MultipleEpochsIterator(epochs, new CifarDataSetIterator(batchSize, numTrainSamples, "TRAIN"));
+            cifar = new MultipleEpochsIterator(epochs, new CifarDataSetIterator(batchSize, numTrainSamples, new int[] {height, width, channels}, "TRAIN"));
             network = new BatchNormModel(height, width, outputNum, channels, seed, iterations).init();
         } else {
 //            epochs = 1;
-            epochs = 6;
+            epochs = 2;
 //            epochs = 120;
             cifar = new MultipleEpochsIterator(epochs, new CifarDataSetIterator(batchSize, numTrainSamples, new int[] {height, width, channels}, "TRAIN"));
 //            network = new QuickModel(height, width, channels, outputNum, seed, iterations).init();

@@ -16,6 +16,7 @@
         <dl4j.version>0.4-rc3.10-SNAPSHOT</dl4j.version>
         <canova.version>0.0.0.16-SNAPSHOT</canova.version>
         <jackson.version>2.5.1</jackson.version>
+        <scala.version>2.10.4</scala.version>
         <scala.binary.version>2.10</scala.binary.version>
         <spark.version>1.5.2</spark.version>
         <jackson.version>2.4.4</jackson.version>
@@ -33,7 +34,13 @@
             </snapshots>
         </repository>
     </repositories>
-
+    <pluginRepositories>
+        <pluginRepository>
+            <id>scala-tools.org</id>
+            <name>Scala-tools Maven2 Repository</name>
+            <url>http://scala-tools.org/repo-releases</url>
+        </pluginRepository>
+    </pluginRepositories>
     <distributionManagement>
         <snapshotRepository>
             <id>sonatype-nexus-snapshots</id>
@@ -106,7 +113,16 @@
             <groupId>org.nd4j</groupId>
             <artifactId>${nd4j.backend}</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>${scala.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>${scala.version}</version>
+        </dependency>
         <!-- Force version of Guava, instead of 15.0 pulled in as a transitive dependency with jackson-datatype-guava... -->
         <dependency>
             <groupId>com.google.guava</groupId>
