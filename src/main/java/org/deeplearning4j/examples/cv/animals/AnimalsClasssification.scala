@@ -33,7 +33,7 @@ import org.nd4j.linalg.lossfunctions.LossFunctions
   * - Tiny ImageNet Classification with CNN: http://cs231n.stanford.edu/reports/leonyao_final.pdf
   *
   */
-object ScalaImgClasssification {
+object AnimalsClasssification {
 
   val seed = 123
   val height = 50

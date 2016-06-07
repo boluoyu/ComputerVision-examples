@@ -43,8 +43,8 @@ import java.util.Random;
  *
  */
 
-public class JavaImgClassification {
-    protected static final Logger log = LoggerFactory.getLogger(JavaImgClassification.class);
+public class AnimalsClassification {
+    protected static final Logger log = LoggerFactory.getLogger(AnimalsClassification.class);
     protected static long seed = 123;
     protected static int height = 50;
     protected static int width = 50;
