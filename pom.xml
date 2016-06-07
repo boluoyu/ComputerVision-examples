@@ -17,7 +17,7 @@
         <canova.version>0.0.0.16</canova.version>
         <jackson.version>2.5.1</jackson.version>
         <scala.version>2.10.4</scala.version>
-        <scala.binary.version>2.10</scala.binary.version>
+        <scala.binary.version>2.11</scala.binary.version>
         <spark.version>1.5.2</spark.version>
         <jackson.version>2.4.4</jackson.version>
     </properties>
@@ -139,8 +139,8 @@
 
         <!-- spark examples -->
         <dependency>
+            <artifactId>dl4j-spark_${scala.binary.version}</artifactId>
             <groupId>org.deeplearning4j</groupId>
-            <artifactId>dl4j-spark</artifactId>
             <version>${dl4j.version}</version>
             <exclusions>
                 <exclusion>
@@ -148,13 +148,17 @@
                     <artifactId>slf4j-log4j12</artifactId>
                 </exclusion>
             </exclusions>
-            <!-- <scope>provided</scope> to reduce jar file size when not doing learning -->
         </dependency>
         <dependency>
-            <artifactId>canova-spark</artifactId>
+            <artifactId>canova-spark_${scala.binary.version}</artifactId>
             <groupId>org.nd4j</groupId>
             <version>${canova.version}</version>
-            <!-- <scope>provided</scope> to reduce jar file size when not doing learning -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
