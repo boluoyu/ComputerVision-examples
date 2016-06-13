@@ -1,5 +1,6 @@
 package org.deeplearning4j.examples.cv.lfw;
 
+import org.canova.api.io.labels.ParentPathLabelGenerator;
 import org.canova.image.loader.LFWLoader;
 import org.deeplearning4j.datasets.iterator.DataSetIterator;
 import org.deeplearning4j.datasets.iterator.impl.LFWDataSetIterator;
@@ -64,19 +65,14 @@ public class LFW {
         int outputNum = LFWLoader.NUM_LABELS;
         int numSamples = LFWLoader.NUM_IMAGES-33;
         boolean useSubset = false;
+        double splitTrainTest = 0.8;
         int batchSize = 100;
         int iterations = 1;
-        int splitTrainNum = (int) (batchSize*.8);
         int seed = 123;
         int listenerFreq = iterations/5;
-        DataSet lfwNext;
-        SplitTestAndTrain trainTest;
-        DataSet trainInput;
-        List<INDArray> testInput = new ArrayList<>();
-        List<INDArray> testLabels = new ArrayList<>();
 
-        log.info("Load data....");
-        DataSetIterator lfw = new LFWDataSetIterator(batchSize, numSamples, new int[] {numRows, numColumns, nChannels}, outputNum, useSubset, true, new Random(seed));
+        log.info("Load data training data....");
+        DataSetIterator lfw = new LFWDataSetIterator(batchSize, numSamples, new int[] {numRows, numColumns, nChannels}, outputNum, useSubset, new ParentPathLabelGenerator(), true, splitTrainTest, new Random(seed));
 
         log.info("Build model....");
         MultiLayerConfiguration.Builder builder = new NeuralNetConfiguration.Builder()
@@ -141,24 +137,14 @@ public class LFW {
         log.info("Train model....");
         model.setListeners(Collections.singletonList((IterationListener) new ScoreIterationListener(listenerFreq)));
 
-        while(lfw.hasNext()) {
-            lfwNext = lfw.next();
-            lfwNext.scale();
-            trainTest = lfwNext.splitTestAndTrain(splitTrainNum, new Random(seed)); // train set that is the result
-            trainInput = trainTest.getTrain(); // get feature matrix and labels for training
-            testInput.add(trainTest.getTest().getFeatureMatrix());
-            testLabels.add(trainTest.getTest().getLabels());
-            model.fit(trainInput);
-        }
+        model.fit(lfw);
+
+        log.info("Load data testing data....");
+        lfw = new LFWDataSetIterator(batchSize, numSamples, new int[] {numRows, numColumns, nChannels}, outputNum, useSubset, new ParentPathLabelGenerator(), false, splitTrainTest, new Random(seed));
+
 
         log.info("Evaluate model....");
-        Evaluation eval = new Evaluation(lfw.getLabels());
-        for(int i = 0; i < testInput.size(); i++) {
-            INDArray output = model.output(testInput.get(i));
-            eval.eval(testLabels.get(i), output);
-        }
-        INDArray output = model.output(testInput.get(0));
-        eval.eval(testLabels.get(0), output);
+        Evaluation eval = model.evaluate(lfw, lfw.getLabels());
         log.info(eval.stats());
         log.info("****************Example finished********************");
 
