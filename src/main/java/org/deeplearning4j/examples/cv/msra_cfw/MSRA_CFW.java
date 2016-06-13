@@ -1,37 +1,31 @@
 package org.deeplearning4j.examples.cv.msra_cfw;
 
 
+import org.canova.api.io.filters.BalancedPathFilter;
 import org.canova.api.io.labels.ParentPathLabelGenerator;
 import org.canova.api.records.reader.RecordReader;
-import org.canova.api.split.LimitFileSplit;
+import org.canova.api.split.FileSplit;
+import org.canova.api.split.InputSplit;
 import org.canova.image.loader.BaseImageLoader;
-import org.canova.image.recordreader.BaseImageRecordReader;
 import org.canova.image.recordreader.ImageRecordReader;
 import org.deeplearning4j.AlexNet;
 import org.deeplearning4j.datasets.canova.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.iterator.DataSetIterator;
+import org.deeplearning4j.datasets.iterator.MultipleEpochsIterator;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.api.IterationListener;
 import org.deeplearning4j.optimize.listeners.ParamAndGradientIterationListener;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
-import org.deeplearning4j.ui.weights.HistogramIterationListener;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 import org.nd4j.linalg.api.buffer.DataBuffer;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.dataset.DataSet;
-import org.nd4j.linalg.dataset.SplitTestAndTrain;
 import org.nd4j.linalg.factory.Nd4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
 
 /**
@@ -61,21 +55,17 @@ public class MSRA_CFW {
 
     // Values to pass in from command line when compiled, esp running remotely
     @Option(name="--numExamples",usage="Number of examples",aliases="-nE")
-    protected int numExamples = 100;
+    protected int numExamples = 1000;
     @Option(name="--batchSize",usage="Batch size",aliases="-b")
-    protected int batchSize = 50;
+    protected int batchSize = 200;
     @Option(name="--epochs",usage="Number of epochs",aliases="-ep")
     protected int epochs = 5;
     @Option(name="--iter",usage="Number of iterations",aliases="-i")
     protected int iterations = 1;
-    @Option(name="--numLabels",usage="Number of categories",aliases="-nL")
-    protected int numLabels = 2;
     @Option(name="--split",usage="Percent to split for training",aliases="-split")
-    protected double split = 0.8;
+    protected double splitTrainTest = 0.8;
 
-    protected boolean gender = true;
-
-    public void run(String[] args) {
+    public void run(String[] args) throws Exception{
         Nd4j.dtype = DataBuffer.Type.DOUBLE;
 
         // Parse command line arguments if they exist
@@ -87,23 +77,16 @@ public class MSRA_CFW {
             System.err.println(e.getMessage());
             parser.printUsage(System.err);
         }
-
         int seed = 123;
         int listenerFreq = 1;
-        boolean appendLabels = true;
-        int splitTrainNum = (int) (batchSize*split);
-
-        SplitTestAndTrain trainTest;
-        DataSet trainInput;
-        List<INDArray> testInput = new ArrayList<>();
-        List<INDArray> testLabels = new ArrayList<>();
-
 
         // TODO setup to download and untar the example - currently needs manual download
 
         log.info("Load data....");
         // Two options to setup gender or 10 unique names classification
         File mainPath;
+        int numLabels;
+        boolean gender = false;
         if(gender) {
             numLabels = 2;
             mainPath = new File(BaseImageLoader.BASE_DIR, "gender_class");
@@ -111,25 +94,23 @@ public class MSRA_CFW {
             numLabels = 10;
             mainPath = new File(BaseImageLoader.BASE_DIR, "thumbnails_features_deduped_sample"); // 10 labels
         }
+        // Organize  & limit data file paths
+        FileSplit fileSplit = new FileSplit(mainPath, BaseImageLoader.ALLOWED_FORMATS, new Random(123));
+        BalancedPathFilter pathFilter = new BalancedPathFilter(new Random(123), new ParentPathLabelGenerator(), numExamples, numLabels, batchSize);
+        InputSplit[] inputSplit = fileSplit.sample(pathFilter, numExamples*(1+splitTrainTest),  numExamples*(1-splitTrainTest));
+        InputSplit trainData = inputSplit[0];
+        InputSplit testData = inputSplit[1];
 
-        RecordReader recordReader = new BaseImageRecordReader(HEIGHT, WIDTH, CHANNELS, new ParentPathLabelGenerator()) {
-            @Override
-            protected boolean containsFormat(String format) {
-                return super.containsFormat(format);
-            }
-        };
-        try {
-            recordReader.initialize(new LimitFileSplit(mainPath, BaseImageLoader.ALLOWED_FORMATS, numExamples, numLabels, null, new Random(123)));
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
+        // Define how data will load into net
+        RecordReader recordReader = new ImageRecordReader(HEIGHT, WIDTH, CHANNELS, new ParentPathLabelGenerator());
+        recordReader.initialize(trainData);
         DataSetIterator dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
-        List<String> labels = gender? Arrays.asList(new String[]{"man", "woman"}): dataIter.getLabels();
+        MultipleEpochsIterator trainIter = new MultipleEpochsIterator(epochs, dataIter);
 
         log.info("Build model....");
         // AlexNet is one type of model provided in model sanctuary. Building your own is also an option
-        MultiLayerNetwork model = new AlexNet(HEIGHT, WIDTH, CHANNELS, numLabels, seed, iterations).init();
-        model.init();
+        MultiLayerNetwork network = new AlexNet(HEIGHT, WIDTH, CHANNELS, numLabels, seed, iterations).init();
+        network.init();
 
         // Set listeners
         // Use paramListener if only have access to command line to track performance
@@ -143,43 +124,17 @@ public class MSRA_CFW {
                 .printMeanAbsValue(true)
                 .delimiter("\t").build();
 
-        model.setListeners(new ScoreIterationListener(listenerFreq));
-//        model.setListeners(new ScoreIterationListener(listenerFreq), new HistogramIterationListener(listenerFreq));
-//        model.setListeners(new ScoreIterationListener(listenerFreq), paramListener);
-
+        network.setListeners(new ScoreIterationListener(listenerFreq));
+//        network.setListeners(new ScoreIterationListener(listenerFreq), new HistogramIterationListener(listenerFreq));
+//        network.setListeners(new ScoreIterationListener(listenerFreq), paramListener);
 
         log.info("Train model....");
-        // One epoch
-        DataSet dsNext;
-        while (dataIter.hasNext()) {
-            dsNext = dataIter.next();
-            dsNext.scale();
-            trainTest = dsNext.splitTestAndTrain(splitTrainNum, new Random(seed)); // train set that is the result
-            trainInput = trainTest.getTrain(); // get feature matrix and labels for training
-            testInput.add(trainTest.getTest().getFeatureMatrix());
-            testLabels.add(trainTest.getTest().getLabels());
-            model.fit(trainInput);
-        }
-
-        // More than 1 epoch just for training
-        for(int i = 1; i < epochs; i++) {
-            dataIter.reset();
-            while (dataIter.hasNext()) {
-                dsNext = dataIter.next();
-                trainTest = dsNext.splitTestAndTrain(splitTrainNum, new Random(seed));
-                trainInput = trainTest.getTrain();
-                model.fit(trainInput);
-            }
-        }
+        network.fit(trainIter);
 
         log.info("Evaluate model....");
-        Evaluation eval = new Evaluation(labels);
-        for(int i = 0; i < testInput.size(); i++) {
-            INDArray output = model.output(testInput.get(i));
-            eval.eval(testLabels.get(i), output);
-        }
-        INDArray output = model.output(testInput.get(0));
-        eval.eval(testLabels.get(0), output);
+        recordReader.initialize(testData);
+        dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
+        Evaluation eval = network.evaluate(dataIter);
         log.info(eval.stats());
 
 

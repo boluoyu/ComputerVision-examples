@@ -62,7 +62,7 @@ public class Cifar {
         //setup the network
         MultiLayerNetwork network;
         if(norm) {
-            epochs = 1;
+            epochs = 2;
             cifar = new MultipleEpochsIterator(epochs, new CifarDataSetIterator(batchSize, numTrainSamples, new int[] {height, width, channels}, "TRAIN"));
             network = new BatchNormModel(height, width, outputNum, channels, seed, iterations).init();
         } else {
