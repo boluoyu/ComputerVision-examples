@@ -8,6 +8,7 @@ import org.canova.api.split.FileSplit;
 import org.canova.api.split.InputSplit;
 import org.canova.image.loader.BaseImageLoader;
 import org.canova.image.recordreader.ImageRecordReader;
+import org.canova.image.transform.*;
 import org.deeplearning4j.datasets.canova.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.iterator.DataSetIterator;
 import org.deeplearning4j.datasets.iterator.MultipleEpochsIterator;
@@ -54,10 +55,11 @@ public class AnimalsClassification {
     protected static int batchSize = 20;
     protected static int listenerFreq = 1;
     protected static int iterations = 1;
-    protected static int epochs = 2;
+    protected static int epochs = 1;
     protected static double splitTrainTest = 0.8;
 
     public static void main(String[] args) throws Exception {
+        Random rng = new Random(42);
         log.info("Load data....");
         /**
          * Data Setup -> organize and limit data file paths:
@@ -67,11 +69,20 @@ public class AnimalsClassification {
          *  - inputSplit = define train and test split
          **/
         File mainPath = new File(System.getProperty("user.dir"), "src/main/resources/");
-        FileSplit fileSplit = new FileSplit(mainPath, BaseImageLoader.ALLOWED_FORMATS, new Random(123));
-        BalancedPathFilter pathFilter = new BalancedPathFilter(new Random(123), new ParentPathLabelGenerator(), numExamples, numLabels, batchSize);
+        FileSplit fileSplit = new FileSplit(mainPath, BaseImageLoader.ALLOWED_FORMATS, rng);
+        BalancedPathFilter pathFilter = new BalancedPathFilter(rng, new ParentPathLabelGenerator(), numExamples, numLabels, batchSize);
         InputSplit[] inputSplit = fileSplit.sample(pathFilter, numExamples*(1+splitTrainTest),  numExamples*(1-splitTrainTest));
         InputSplit trainData = inputSplit[0];
         InputSplit testData = inputSplit[1];
+
+        /**
+         * Data Setup -> transformation
+         *  - imageTransform = how to tranform images and generate large dataset to train on
+         **/
+        ImageTransform imageTransform = new MultiImageTransform(rng,
+                new FlipImageTransform(0),
+                new WarpImageTransform(42));
+                //new ShowImageTransform("Transformed Image", 1));
 
         /**
          * Data Setup -> define how to load data into net:
@@ -79,7 +90,7 @@ public class AnimalsClassification {
          *  - dataIter = a generator that only loads one batch at a time into memory to save memory
          *  - trainIter = uses MultipleEpochsIterator to ensure model runs through the data for all epochs
          **/
-        RecordReader recordReader = new ImageRecordReader(width, height, channels, new ParentPathLabelGenerator());
+        RecordReader recordReader = new ImageRecordReader(width, height, channels, new ParentPathLabelGenerator(), imageTransform);
         recordReader.initialize(trainData);
         DataSetIterator dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
         MultipleEpochsIterator trainIter = new MultipleEpochsIterator(epochs, dataIter);
