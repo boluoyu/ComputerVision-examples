@@ -8,6 +8,9 @@ import org.canova.api.split.FileSplit;
 import org.canova.api.split.InputSplit;
 import org.canova.image.loader.BaseImageLoader;
 import org.canova.image.recordreader.ImageRecordReader;
+import org.canova.image.transform.FlipImageTransform;
+import org.canova.image.transform.ImageTransform;
+import org.canova.image.transform.WarpImageTransform;
 import org.deeplearning4j.AlexNet;
 import org.deeplearning4j.datasets.canova.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.iterator.DataSetIterator;
@@ -26,6 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -52,6 +57,9 @@ public class MSRA_CFW {
     public final static int HEIGHT = 100;
     public final static int WIDTH = 100; // size varies
     public final static int CHANNELS = 3;
+    protected static long seed = 42;
+    protected static Random rng = new Random(seed);
+    protected static int listenerFreq = 1;
 
     // Values to pass in from command line when compiled, esp running remotely
     @Option(name="--numExamples",usage="Number of examples",aliases="-nE")
@@ -77,8 +85,6 @@ public class MSRA_CFW {
             System.err.println(e.getMessage());
             parser.printUsage(System.err);
         }
-        int seed = 123;
-        int listenerFreq = 1;
 
         // TODO setup to download and untar the example - currently needs manual download
 
@@ -97,15 +103,24 @@ public class MSRA_CFW {
         // Organize  & limit data file paths
         FileSplit fileSplit = new FileSplit(mainPath, BaseImageLoader.ALLOWED_FORMATS, new Random(123));
         BalancedPathFilter pathFilter = new BalancedPathFilter(new Random(123), new ParentPathLabelGenerator(), numExamples, numLabels, batchSize);
+
+        // Setup train test split
         InputSplit[] inputSplit = fileSplit.sample(pathFilter, numExamples*(1+splitTrainTest),  numExamples*(1-splitTrainTest));
         InputSplit trainData = inputSplit[0];
         InputSplit testData = inputSplit[1];
 
-        // Define how data will load into net
-        RecordReader recordReader = new ImageRecordReader(HEIGHT, WIDTH, CHANNELS, new ParentPathLabelGenerator());
-        recordReader.initialize(trainData);
-        DataSetIterator dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
-        MultipleEpochsIterator trainIter = new MultipleEpochsIterator(epochs, dataIter);
+
+        // Define image transformations to increase dataset
+        ImageTransform flipTransform = new FlipImageTransform(90);
+        ImageTransform warpTransform = new WarpImageTransform(rng, 42);
+        List<ImageTransform> transforms = Arrays.asList(new ImageTransform[] {null, flipTransform, warpTransform});
+
+
+        // Define how data will load into net - use below if no transforms
+//        RecordReader recordReader = new ImageRecordReader(HEIGHT, WIDTH, CHANNELS, new ParentPathLabelGenerator());
+//        recordReader.initialize(trainData);
+//        DataSetIterator dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
+//        MultipleEpochsIterator trainIter = new MultipleEpochsIterator(epochs, dataIter);
 
         log.info("Build model....");
         // AlexNet is one type of model provided in model sanctuary. Building your own is also an option
@@ -129,7 +144,17 @@ public class MSRA_CFW {
 //        network.setListeners(new ScoreIterationListener(listenerFreq), paramListener);
 
         log.info("Train model....");
-        network.fit(trainIter);
+        ImageRecordReader recordReader = new ImageRecordReader(HEIGHT, WIDTH, CHANNELS, new ParentPathLabelGenerator());
+        DataSetIterator dataIter;
+        MultipleEpochsIterator trainIter;
+
+        // Train with transformations
+        for(ImageTransform transform: transforms) {
+            recordReader.initialize(trainData, transform);
+            dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
+            trainIter = new MultipleEpochsIterator(epochs, dataIter);
+            network.fit(trainIter);
+        }
 
         log.info("Evaluate model....");
         recordReader.initialize(testData);

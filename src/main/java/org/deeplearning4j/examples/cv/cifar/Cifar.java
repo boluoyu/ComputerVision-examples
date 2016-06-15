@@ -56,7 +56,7 @@ public class Cifar {
     protected static int iterations = 1;
     protected static int epochs = 5;
 
-    public static final boolean norm = true; // change to true to run BatchNorm model - not currently broken
+    public static final boolean norm = false; // change to true to run BatchNorm model
 
     public static void main(String[] args) throws IOException {
         MultipleEpochsIterator cifar;
@@ -75,12 +75,12 @@ public class Cifar {
             cifar = new MultipleEpochsIterator(epochs, new CifarDataSetIterator(batchSize, numTrainExamples, new int[] {height, width, channels}, "TRAIN"));
             network = new BatchNormModel(height, width, channels, numLabels, seed, iterations).init();
         } else {
-//            epochs = 1;
-            epochs = 2;
+            epochs = 5;
+//            epochs = 2;
 //            epochs = 120;
             cifar = new MultipleEpochsIterator(epochs, new CifarDataSetIterator(batchSize, numTrainExamples, new int[] {height, width, channels}, "TRAIN"));
-//            network = new QuickModel(height, width, channels, outputNum, seed, iterations).init();
-            network = new LRNModel(height, width, channels, numLabels, seed, iterations).init();
+            network = new QuickModel(height, width, channels, numLabels, seed, iterations).init();
+//            network = new LRNModel(height, width, channels, numLabels, seed, iterations).init();
 //            network = new Model4(height, width, channels, outputNum, seed, iterations).init();
         }
         network.setListeners(Arrays.asList((IterationListener) new ScoreIterationListener(listenerFreq)));

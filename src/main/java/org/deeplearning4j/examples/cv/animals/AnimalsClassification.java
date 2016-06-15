@@ -9,6 +9,7 @@ import org.canova.api.split.InputSplit;
 import org.canova.image.loader.BaseImageLoader;
 import org.canova.image.recordreader.ImageRecordReader;
 import org.canova.image.transform.*;
+import org.deeplearning4j.AlexNet;
 import org.deeplearning4j.datasets.canova.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.iterator.DataSetIterator;
 import org.deeplearning4j.datasets.iterator.MultipleEpochsIterator;
@@ -158,6 +159,9 @@ public class AnimalsClassification {
                 .cnnInputSize(height, width, channels).build();
 
         MultiLayerNetwork network = new MultiLayerNetwork(confTiny);
+
+        // Uncomment below if you want to try AlexNet. Note change height and width to at least 100
+//        MultiLayerNetwork network = new AlexNet(height, width, channels, numLabels, seed, iterations).init();
         network.init();
         network.setListeners(new ScoreIterationListener(listenerFreq));
 
@@ -167,7 +171,7 @@ public class AnimalsClassification {
          *  - dataIter = a generator that only loads one batch at a time into memory to save memory
          *  - trainIter = uses MultipleEpochsIterator to ensure model runs through the data for all epochs
          **/
-        ImageRecordReader recordReader = new ImageRecordReader(width, height, channels, new ParentPathLabelGenerator());
+        ImageRecordReader recordReader = new ImageRecordReader(height, width, channels, new ParentPathLabelGenerator());
         DataSetIterator dataIter;
         MultipleEpochsIterator trainIter;
 
