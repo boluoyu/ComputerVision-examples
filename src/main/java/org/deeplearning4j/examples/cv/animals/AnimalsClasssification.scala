@@ -12,7 +12,8 @@ import org.canova.image.loader.BaseImageLoader
 import org.canova.image.recordreader.ImageRecordReader
 import org.canova.image.transform.{WarpImageTransform, FlipImageTransform, ImageTransform}
 import org.deeplearning4j.datasets.canova.RecordReaderDataSetIterator
-import org.deeplearning4j.datasets.iterator.{DataSetIterator, MultipleEpochsIterator}
+import org.nd4j.linalg.dataset.api.iterator.DataSetIterator
+import org.deeplearning4j.datasets.iterator.{MultipleEpochsIterator}
 import org.deeplearning4j.eval.Evaluation
 import org.deeplearning4j.nn.api.OptimizationAlgorithm
 import org.deeplearning4j.nn.conf.layers.{ConvolutionLayer, DenseLayer, LocalResponseNormalization, OutputLayer, SubsamplingLayer}
@@ -138,22 +139,22 @@ object AnimalsClasssification {
     var trainIter: MultipleEpochsIterator = null
 
     // Train
-    for (transform <- transforms) {
-      recordReader.initialize(trainData, transform)
-      dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels)
-      trainIter = new MultipleEpochsIterator(epochs, dataIter)
-      network.fit(trainIter)
-    }
-
-    // Evaluate
-    recordReader.initialize(testData)
-    dataIter = new RecordReaderDataSetIterator(recordReader, 20, 1, numLabels)
-    val eval = network.evaluate(dataIter)
-    print(eval.stats(true))
-
-    // Save model and parameters
-    NetSaverLoaderUtils.saveNetworkAndParameters(network, basePath)
-    NetSaverLoaderUtils.saveUpdators(network, basePath)
+//    for (transform <- transforms) {
+//      recordReader.initialize(trainData, transform)
+//      dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels)
+//      trainIter = new MultipleEpochsIterator(epochs, dataIter)
+//      network.fit(trainIter)
+//    }
+//
+//    // Evaluate
+//    recordReader.initialize(testData)
+//    dataIter = new RecordReaderDataSetIterator(recordReader, 20, 1, numLabels)
+//    val eval = network.evaluate(dataIter)
+//    print(eval.stats(true))
+//
+//    // Save model and parameters
+//    NetSaverLoaderUtils.saveNetworkAndParameters(network, basePath)
+//    NetSaverLoaderUtils.saveUpdators(network, basePath)
 
   }
 }

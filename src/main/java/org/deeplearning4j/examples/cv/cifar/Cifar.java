@@ -45,53 +45,53 @@ public class Cifar {
     protected static int height = 32;
     protected static int width = 32;
     protected static int channels = 3;
-    protected static int numTrainExamples = 50;//CifarLoader.NUM_TRAIN_IMAGES;
-    protected static int numTestExamples = 50; //CifarLoader.NUM_TEST_IMAGES;
+    protected static int numTrainExamples = 500;//CifarLoader.NUM_TRAIN_IMAGES;
+    protected static int numTestExamples = 500; //CifarLoader.NUM_TEST_IMAGES;
     protected static int numLabels = CifarLoader.NUM_LABELS;
-    protected static int batchSize = 25;
+    protected static int batchSize = 100;
 
     protected static int seed = 42;
     protected static Random rng = new Random(seed);
-    protected static int listenerFreq = 10;
+    protected static int listenerFreq = 1;
     protected static int iterations = 1;
     protected static int epochs = 5;
 
-    public static final boolean norm = false; // change to true to run BatchNorm model
+    public static final boolean norm = true; // change to true to run BatchNorm model
 
     public static void main(String[] args) throws IOException {
-        MultipleEpochsIterator cifar;
         MultiLayerNetwork network;
+        int normalizeValue = 255;
 
         System.out.println("Load data...");
 
-        // TODO setup cifar with transform
-//        ImageTransform flipTransform = new FlipImageTransform(rng);
-//        ImageTransform warpTransform = new WarpImageTransform(rng, 42);
-//        List<ImageTransform> transforms = Arrays.asList(new ImageTransform[] {null, flipTransform, warpTransform});
+        ImageTransform flipTransform = new FlipImageTransform(rng);
+        ImageTransform warpTransform = new WarpImageTransform(rng, 42);
+        List<ImageTransform> transforms = Arrays.asList(new ImageTransform[] {null, flipTransform, warpTransform});
 
         log.info("Build model....");
         if(norm) {
             epochs = 5;
-            cifar = new MultipleEpochsIterator(epochs, new CifarDataSetIterator(batchSize, numTrainExamples, new int[] {height, width, channels}, "TRAIN"));
             network = new BatchNormModel(height, width, channels, numLabels, seed, iterations).init();
         } else {
             epochs = 5;
-//            epochs = 2;
-//            epochs = 120;
-            cifar = new MultipleEpochsIterator(epochs, new CifarDataSetIterator(batchSize, numTrainExamples, new int[] {height, width, channels}, "TRAIN"));
             network = new QuickModel(height, width, channels, numLabels, seed, iterations).init();
+//            epochs = 2;
 //            network = new LRNModel(height, width, channels, numLabels, seed, iterations).init();
+//            epochs = 120;
 //            network = new Model4(height, width, channels, outputNum, seed, iterations).init();
         }
         network.setListeners(Arrays.asList((IterationListener) new ScoreIterationListener(listenerFreq)));
 
         System.out.println("Train model...");
-        network.fit(cifar);
+        for(ImageTransform transform: transforms) {
+            MultipleEpochsIterator cifar = new MultipleEpochsIterator(epochs, new CifarDataSetIterator(batchSize, numTrainExamples, new int[]{height, width, channels}, numLabels, transform, normalizeValue, true));
+            network.fit(cifar);
+        }
 
         log.info("Evaluate model....");
-        CifarDataSetIterator cifarTest = new CifarDataSetIterator(batchSize, numTestExamples, new int[] {height, width, channels}, "TEST");
+        CifarDataSetIterator cifarTest = new CifarDataSetIterator(batchSize, numTestExamples, new int[] {height, width, channels}, normalizeValue, false);
         Evaluation eval = network.evaluate(cifarTest);
-        System.out.println(eval.stats());
+        System.out.println(eval.stats(true));
 
         log.info("****************Example finished********************");
 

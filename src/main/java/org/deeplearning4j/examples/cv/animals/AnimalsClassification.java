@@ -3,18 +3,16 @@ package org.deeplearning4j.examples.cv.animals;
 import org.apache.commons.io.FilenameUtils;
 import org.canova.api.io.filters.BalancedPathFilter;
 import org.canova.api.io.labels.ParentPathLabelGenerator;
-import org.canova.api.records.reader.RecordReader;
 import org.canova.api.split.FileSplit;
 import org.canova.api.split.InputSplit;
 import org.canova.image.loader.BaseImageLoader;
+import org.canova.image.loader.NativeImageLoader;
 import org.canova.image.recordreader.ImageRecordReader;
 import org.canova.image.transform.*;
 import org.deeplearning4j.AlexNet;
 import org.deeplearning4j.datasets.canova.RecordReaderDataSetIterator;
-import org.deeplearning4j.datasets.iterator.DataSetIterator;
 import org.deeplearning4j.datasets.iterator.MultipleEpochsIterator;
 import org.deeplearning4j.eval.Evaluation;
-import org.deeplearning4j.nn.api.Layer;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.GradientNormalization;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
@@ -26,6 +24,7 @@ import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.util.NetSaverLoaderUtils;
 import org.nd4j.linalg.dataset.DataSet;
+import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +60,7 @@ public class AnimalsClassification {
     protected static Random rng = new Random(seed);
     protected static int listenerFreq = 1;
     protected static int iterations = 1;
-    protected static int epochs = 5;
+    protected static int epochs = 20;
     protected static double splitTrainTest = 0.8;
 
 
@@ -75,7 +74,7 @@ public class AnimalsClassification {
          *  - pathFilter = define additional file load filter to limit size and balance batch content
          **/
         File mainPath = new File(System.getProperty("user.dir"), "src/main/resources/");
-        FileSplit fileSplit = new FileSplit(mainPath, BaseImageLoader.ALLOWED_FORMATS, rng);
+        FileSplit fileSplit = new FileSplit(mainPath, NativeImageLoader.ALLOWED_FORMATS, rng);
         BalancedPathFilter pathFilter = new BalancedPathFilter(rng, new ParentPathLabelGenerator(), numExamples, numLabels, batchSize);
 
         /**
@@ -90,12 +89,10 @@ public class AnimalsClassification {
          * Data Setup -> transformation
          *  - *Transform = how to tranform images and generate large dataset to train on
          **/
-//        ImageTransform flipTransform = new MultiImageTransform(rng,
-//                new FlipImageTransform(0),
-//                new ShowImageTransform("Flipped Image", 1));
-        ImageTransform flipTransform = new FlipImageTransform(rng);
+        ImageTransform flipTransform1 = new FlipImageTransform(rng);
+        ImageTransform flipTransform2 = new FlipImageTransform(new Random (123));
         ImageTransform warpTransform = new WarpImageTransform(rng, 42);
-        List<ImageTransform> transforms = Arrays.asList(new ImageTransform[] {null, flipTransform, warpTransform});
+        List<ImageTransform> transforms = Arrays.asList(new ImageTransform[] {null, flipTransform1, warpTransform, flipTransform2});
 
         log.info("Build model....");
         // Tiny model configuration
@@ -171,7 +168,7 @@ public class AnimalsClassification {
          *  - dataIter = a generator that only loads one batch at a time into memory to save memory
          *  - trainIter = uses MultipleEpochsIterator to ensure model runs through the data for all epochs
          **/
-        ImageRecordReader recordReader = new ImageRecordReader(height, width, channels, new ParentPathLabelGenerator());
+        ImageRecordReader recordReader = new ImageRecordReader(height, width, channels, new ParentPathLabelGenerator(), 255);
         DataSetIterator dataIter;
         MultipleEpochsIterator trainIter;
 

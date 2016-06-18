@@ -3,6 +3,7 @@ package org.deeplearning4j.examples.cv.lfw;
 import org.canova.api.io.labels.ParentPathLabelGenerator;
 import org.canova.image.loader.LFWLoader;
 import org.deeplearning4j.datasets.iterator.DataSetIterator;
+import org.deeplearning4j.datasets.iterator.MultipleEpochsIterator;
 import org.deeplearning4j.datasets.iterator.impl.LFWDataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
@@ -58,24 +59,24 @@ public class LFW {
 
     public static void main(String[] args) {
 
-
         final int numRows = 40;
         final int numColumns = 40;
         final int nChannels = 3;
-        int outputNum = LFWLoader.NUM_LABELS;
-        int numSamples = LFWLoader.NUM_IMAGES-33;
-        boolean useSubset = false;
+        int outputNum = LFWLoader.SUB_NUM_LABELS;
+        int numSamples = 10;// LFWLoader.SUB_NUM_IMAGES; // LFWLoader.NUM_IMAGES-33;
+        boolean useSubset = true;
         double splitTrainTest = 0.8;
-        int batchSize = 100;
+        int batchSize = 10;
         int iterations = 1;
-        int seed = 123;
+        int seed = 42;
+        int epochs = 1;
         int listenerFreq = iterations/5;
 
         log.info("Load data training data....");
-        DataSetIterator lfw = new LFWDataSetIterator(batchSize, numSamples, new int[] {numRows, numColumns, nChannels}, outputNum, useSubset, new ParentPathLabelGenerator(), true, splitTrainTest, new Random(seed));
+        LFWDataSetIterator lfw = new LFWDataSetIterator(batchSize, numSamples, new int[] {numRows, numColumns, nChannels}, outputNum, useSubset, new ParentPathLabelGenerator(), true, splitTrainTest, null, 255, new Random(seed));
 
         log.info("Build model....");
-        MultiLayerConfiguration.Builder builder = new NeuralNetConfiguration.Builder()
+        MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
                 .seed(seed)
                 .iterations(iterations)
                 .activation("relu")
@@ -106,41 +107,42 @@ public class LFW {
                 .layer(3, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{2, 2})
                         .name("pool2")
                         .build())
-                .layer(2, new ConvolutionLayer.Builder(3, 3)
+                .layer(4, new ConvolutionLayer.Builder(3, 3)
                         .name("cnn3")
                         .stride(1,1)
                         .nOut(60)
                         .build())
-                .layer(3, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{2, 2})
+                .layer(5, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{2, 2})
                         .name("pool3")
                         .build())
-                .layer(2, new ConvolutionLayer.Builder(2, 2)
+                .layer(6, new ConvolutionLayer.Builder(2, 2)
                         .name("cnn3")
                         .stride(1,1)
                         .nOut(80)
                         .build())
-                .layer(4, new DenseLayer.Builder()
+                .layer(7, new DenseLayer.Builder()
                         .name("ffn1")
                         .nOut(160)
                         .dropOut(0.5)
                         .build())
-                .layer(5, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
+                .layer(8, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
                         .nOut(outputNum)
                         .activation("softmax")
                         .build())
-                .backprop(true).pretrain(false);
-        new ConvolutionLayerSetup(builder,numRows,numColumns,nChannels);
+                .backprop(true).pretrain(false)
+                .cnnInputSize(numRows,numColumns,nChannels)
+                .build();
 
-        MultiLayerNetwork model = new MultiLayerNetwork(builder.build());
+        MultiLayerNetwork model = new MultiLayerNetwork(conf);
         model.init();
 
         log.info("Train model....");
         model.setListeners(Collections.singletonList((IterationListener) new ScoreIterationListener(listenerFreq)));
-
-        model.fit(lfw);
+        MultipleEpochsIterator multiLFW = new MultipleEpochsIterator(epochs, lfw);
+        model.fit(multiLFW);
 
         log.info("Load data testing data....");
-        lfw = new LFWDataSetIterator(batchSize, numSamples, new int[] {numRows, numColumns, nChannels}, outputNum, useSubset, new ParentPathLabelGenerator(), false, splitTrainTest, new Random(seed));
+        lfw = new LFWDataSetIterator(batchSize, numSamples, new int[] {numRows, numColumns, nChannels}, outputNum, useSubset, new ParentPathLabelGenerator(), false, splitTrainTest, null, 0, new Random(seed));
 
 
         log.info("Evaluate model....");
