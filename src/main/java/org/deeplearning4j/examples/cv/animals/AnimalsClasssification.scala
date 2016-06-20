@@ -139,22 +139,22 @@ object AnimalsClasssification {
     var trainIter: MultipleEpochsIterator = null
 
     // Train
-//    for (transform <- transforms) {
-//      recordReader.initialize(trainData, transform)
-//      dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels)
-//      trainIter = new MultipleEpochsIterator(epochs, dataIter)
-//      network.fit(trainIter)
-//    }
-//
-//    // Evaluate
-//    recordReader.initialize(testData)
-//    dataIter = new RecordReaderDataSetIterator(recordReader, 20, 1, numLabels)
-//    val eval = network.evaluate(dataIter)
-//    print(eval.stats(true))
-//
-//    // Save model and parameters
-//    NetSaverLoaderUtils.saveNetworkAndParameters(network, basePath)
-//    NetSaverLoaderUtils.saveUpdators(network, basePath)
+    for (transform <- transforms) {
+      recordReader.initialize(trainData, transform)
+      dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels)
+      trainIter = new MultipleEpochsIterator(epochs, dataIter)
+      network.fit(trainIter)
+    }
+
+    // Evaluate
+    recordReader.initialize(testData)
+    dataIter = new RecordReaderDataSetIterator(recordReader, 20, 1, numLabels)
+    val eval = network.evaluate(dataIter)
+    print(eval.stats(true))
+
+    // Save model and parameters
+    NetSaverLoaderUtils.saveNetworkAndParameters(network, basePath)
+    NetSaverLoaderUtils.saveUpdators(network, basePath)
 
   }
 }
