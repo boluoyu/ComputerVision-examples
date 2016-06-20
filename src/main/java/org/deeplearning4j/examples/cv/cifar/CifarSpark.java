@@ -53,81 +53,81 @@ public class CifarSpark {
     public static void main(String[] args) throws Exception {
 
         Nd4j.dtype = DataBuffer.Type.DOUBLE;
-
-        int listenerFreq = batchSize;
-        List<String> labels = new CifarLoader().getLabels();
-        int nEpochs = 1;
-
-        // Setup SparkContext
-        SparkConf sparkConf = new SparkConf()
-                .setMaster("local[6]");
-        sparkConf.setAppName("Cifar");
-        sparkConf.set(SparkDl4jMultiLayer.AVERAGE_EACH_ITERATION, String.valueOf(true));
-        JavaSparkContext sc = new JavaSparkContext(sparkConf);
-
-        log.info("Load train data....");
-        JavaPairRDD<String,PortableDataStream> sparkData = sc.binaryFiles(CifarLoader.TRAINPATH.toString());
-        JavaPairRDD<Text, BytesWritable> filesAsBytes = sparkData.mapToPair(new FilesAsBytesFunction());
-        JavaPairRDD<Double, DataSet> trainData = filesAsBytes.mapToPair(new CanovaByteDataSetFunction(0, CifarLoader.NUM_LABELS, batchSize, CifarLoader.BYTEFILELEN));
-
-//        JavaRDD<DataSet> train = filesAsBytes.map(new CanovaByteDataSetFunction(0, CifarLoader.NUM_LABELS, batchSize, numTrainSamples, CifarLoader.BYTEFILELEN));
-        JavaRDD<DataSet> train = trainData.map(new Function<Tuple2<Double, DataSet>, DataSet>() {
-            @Override
-            public DataSet call(Tuple2<Double,DataSet> ds) throws Exception {
-                return ds._2();
-            }
-        });
-
-        train.cache();
-
-        JavaDoubleRDD numExamplesPerRDD = trainData.mapToDouble(new DoubleFunction<Tuple2<Double,DataSet>>(){
-            @Override
-            public double call(Tuple2<Double,DataSet> ds) throws Exception {
-                return ds._1();
-            }
-        });
-
-        double totalCaptured = numExamplesPerRDD.sum();
-
-
-        log.info("Build model....");
-        MultiLayerNetwork network = new LRNModel(HEIGHT, WIDTH, outputNum, CHANNELS, seed, iterations).init();
-        network.setListeners(Arrays.asList((IterationListener) new ScoreIterationListener(listenerFreq)));
-
-        //Create Spark multi layer network from configuration
-        SparkDl4jMultiLayer sparkNetwork = new SparkDl4jMultiLayer(sc, network);
-
-
-        log.info("Train model...");
-
-        for (int i = 0; i < nEpochs; i++) {
-            sparkNetwork.fitDataSet(train);
-            System.out.println("----- Epoch " + i + " complete -----");
-        }
-
-        train.unpersist();
-
-        sparkData = sc.binaryFiles(CifarLoader.TESTPATH.toString());
-        filesAsBytes = sparkData.mapToPair(new FilesAsBytesFunction());
-        JavaPairRDD<Double, DataSet> testData = filesAsBytes.mapToPair(new CanovaByteDataSetFunction(0, CifarLoader.NUM_LABELS, batchSize, CifarLoader.BYTEFILELEN));
-
-        JavaRDD<DataSet> test = testData.map(new Function<Tuple2<Double, DataSet>, DataSet>() {
-            @Override
-            public DataSet call(Tuple2<Double,DataSet> ds) throws Exception {
-                return ds._2();
-            }
-        });
-
-        test.cache();
-
-        log.info("Eval model...");
-        Evaluation evalActual = sparkNetwork.evaluate(test, labels);
-        log.info(evalActual.stats());
-        List<DataSet> dst = test.collect();
-
-        test.unpersist();
-
-        log.info("****************Example finished********************");
+//
+//        int listenerFreq = batchSize;
+//        List<String> labels = new CifarLoader().getLabels();
+//        int nEpochs = 1;
+//
+//        // Setup SparkContext
+//        SparkConf sparkConf = new SparkConf()
+//                .setMaster("local[6]");
+//        sparkConf.setAppName("Cifar");
+//        sparkConf.set(SparkDl4jMultiLayer.AVERAGE_EACH_ITERATION, String.valueOf(true));
+//        JavaSparkContext sc = new JavaSparkContext(sparkConf);
+//
+//        log.info("Load train data....");
+//        JavaPairRDD<String,PortableDataStream> sparkData = sc.binaryFiles(CifarLoader.TRAINPATH.toString());
+//        JavaPairRDD<Text, BytesWritable> filesAsBytes = sparkData.mapToPair(new FilesAsBytesFunction());
+//        JavaPairRDD<Double, DataSet> trainData = filesAsBytes.mapToPair(new CanovaByteDataSetFunction(0, CifarLoader.NUM_LABELS, batchSize, CifarLoader.BYTEFILELEN));
+//
+////        JavaRDD<DataSet> train = filesAsBytes.map(new CanovaByteDataSetFunction(0, CifarLoader.NUM_LABELS, batchSize, numTrainSamples, CifarLoader.BYTEFILELEN));
+//        JavaRDD<DataSet> train = trainData.map(new Function<Tuple2<Double, DataSet>, DataSet>() {
+//            @Override
+//            public DataSet call(Tuple2<Double,DataSet> ds) throws Exception {
+//                return ds._2();
+//            }
+//        });
+//
+//        train.cache();
+//
+//        JavaDoubleRDD numExamplesPerRDD = trainData.mapToDouble(new DoubleFunction<Tuple2<Double,DataSet>>(){
+//            @Override
+//            public double call(Tuple2<Double,DataSet> ds) throws Exception {
+//                return ds._1();
+//            }
+//        });
+//
+//        double totalCaptured = numExamplesPerRDD.sum();
+//
+//
+//        log.info("Build model....");
+//        MultiLayerNetwork network = new LRNModel(HEIGHT, WIDTH, outputNum, CHANNELS, seed, iterations).init();
+//        network.setListeners(Arrays.asList((IterationListener) new ScoreIterationListener(listenerFreq)));
+//
+//        //Create Spark multi layer network from configuration
+//        SparkDl4jMultiLayer sparkNetwork = new SparkDl4jMultiLayer(sc, network);
+//
+//
+//        log.info("Train model...");
+//
+//        for (int i = 0; i < nEpochs; i++) {
+//            sparkNetwork.fitDataSet(train);
+//            System.out.println("----- Epoch " + i + " complete -----");
+//        }
+//
+//        train.unpersist();
+//
+//        sparkData = sc.binaryFiles(CifarLoader.TESTPATH.toString());
+//        filesAsBytes = sparkData.mapToPair(new FilesAsBytesFunction());
+//        JavaPairRDD<Double, DataSet> testData = filesAsBytes.mapToPair(new CanovaByteDataSetFunction(0, CifarLoader.NUM_LABELS, batchSize, CifarLoader.BYTEFILELEN));
+//
+//        JavaRDD<DataSet> test = testData.map(new Function<Tuple2<Double, DataSet>, DataSet>() {
+//            @Override
+//            public DataSet call(Tuple2<Double,DataSet> ds) throws Exception {
+//                return ds._2();
+//            }
+//        });
+//
+//        test.cache();
+//
+//        log.info("Eval model...");
+//        Evaluation evalActual = sparkNetwork.evaluate(test, labels);
+//        log.info(evalActual.stats());
+//        List<DataSet> dst = test.collect();
+//
+//        test.unpersist();
+//
+//        log.info("****************Example finished********************");
 
 
     }
