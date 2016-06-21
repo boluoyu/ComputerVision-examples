@@ -99,7 +99,9 @@ public class MSRA_CFW {
             mainPath = new File(BaseImageLoader.BASE_DIR, "gender_class");
         }else{
             numLabels = 10;
-            mainPath = new File(BaseImageLoader.BASE_DIR, "thumbnails_features_deduped_sample"); // 10 labels
+//            mainPath = new File(BaseImageLoader.BASE_DIR, "thumbnails_features_deduped_sample"); // 10 labels
+            mainPath = new File(BaseImageLoader.BASE_DIR, "data/mrsa-cfw"); // 10 labels
+
         }
         // Organize  & limit data file paths
         FileSplit fileSplit = new FileSplit(mainPath, NativeImageLoader.ALLOWED_FORMATS, new Random(123));
@@ -145,7 +147,7 @@ public class MSRA_CFW {
 //        network.setListeners(new ScoreIterationListener(listenerFreq), paramListener);
 
         log.info("Train model....");
-        ImageRecordReader recordReader = new ImageRecordReader(HEIGHT, WIDTH, CHANNELS, new ParentPathLabelGenerator());
+        ImageRecordReader recordReader = new ImageRecordReader(HEIGHT, WIDTH, CHANNELS, new ParentPathLabelGenerator(), 255);
         DataSetIterator dataIter;
         MultipleEpochsIterator trainIter;
 

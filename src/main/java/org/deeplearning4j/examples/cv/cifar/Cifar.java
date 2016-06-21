@@ -45,10 +45,10 @@ public class Cifar {
     protected static int height = 32;
     protected static int width = 32;
     protected static int channels = 3;
-    protected static int numTrainExamples = 500;//CifarLoader.NUM_TRAIN_IMAGES;
-    protected static int numTestExamples = 500; //CifarLoader.NUM_TEST_IMAGES;
+    protected static int numTrainExamples = 2;//CifarLoader.NUM_TRAIN_IMAGES;
+    protected static int numTestExamples = 2; //CifarLoader.NUM_TEST_IMAGES;
     protected static int numLabels = CifarLoader.NUM_LABELS;
-    protected static int batchSize = 100;
+    protected static int batchSize = 2;
 
     protected static int seed = 42;
     protected static Random rng = new Random(seed);
