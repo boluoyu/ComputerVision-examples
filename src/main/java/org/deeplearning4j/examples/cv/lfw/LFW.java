@@ -2,6 +2,7 @@ package org.deeplearning4j.examples.cv.lfw;
 
 import org.canova.api.io.labels.ParentPathLabelGenerator;
 import org.canova.image.loader.LFWLoader;
+import org.deeplearning4j.AlexNet;
 import org.deeplearning4j.datasets.iterator.DataSetIterator;
 import org.deeplearning4j.datasets.iterator.MultipleEpochsIterator;
 import org.deeplearning4j.datasets.iterator.impl.LFWDataSetIterator;
@@ -59,17 +60,17 @@ public class LFW {
 
     public static void main(String[] args) {
 
-        final int numRows = 40;
-        final int numColumns = 40;
+        final int numRows = 32;
+        final int numColumns = 32;
         final int nChannels = 3;
         int outputNum = LFWLoader.SUB_NUM_LABELS;
-        int numSamples = 10;// LFWLoader.SUB_NUM_IMAGES; // LFWLoader.NUM_IMAGES-33;
+        int numSamples = 4;// LFWLoader.SUB_NUM_IMAGES; // LFWLoader.NUM_IMAGES-33;
         boolean useSubset = true;
-        double splitTrainTest = 0.8;
-        int batchSize = 10;
+        double splitTrainTest = 0.5;
+        int batchSize = 2;
         int iterations = 1;
         int seed = 42;
-        int epochs = 1;
+        int epochs = 2;
         int listenerFreq = iterations/5;
 
         log.info("Load data training data....");
@@ -134,15 +135,16 @@ public class LFW {
                 .build();
 
         MultiLayerNetwork model = new MultiLayerNetwork(conf);
+//        MultiLayerNetwork model = new AlexNet(numRows, numColumns, nChannels, outputNum, seed, iterations).init();
         model.init();
 
         log.info("Train model....");
         model.setListeners(Collections.singletonList((IterationListener) new ScoreIterationListener(listenerFreq)));
-        MultipleEpochsIterator multiLFW = new MultipleEpochsIterator(epochs, lfw);
+        MultipleEpochsIterator multiLFW = new MultipleEpochsIterator(epochs, lfw, 5);
         model.fit(multiLFW);
 
         log.info("Load data testing data....");
-        lfw = new LFWDataSetIterator(batchSize, numSamples, new int[] {numRows, numColumns, nChannels}, outputNum, useSubset, new ParentPathLabelGenerator(), false, splitTrainTest, null, 0, new Random(seed));
+        lfw = new LFWDataSetIterator(batchSize, numSamples, new int[] {numRows, numColumns, nChannels}, outputNum, useSubset, new ParentPathLabelGenerator(), false, splitTrainTest, null, 255, new Random(seed));
 
 
         log.info("Evaluate model....");
