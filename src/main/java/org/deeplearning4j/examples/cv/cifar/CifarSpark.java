@@ -46,10 +46,13 @@ public class CifarSpark {
     protected static final int HEIGHT = 32;
     protected static final int WIDTH = 32;
     protected static final int CHANNELS = 3;
-    protected static final int outputNum = CifarLoader.NUM_LABELS;
-    protected static int batchSize = 5;
+    protected static final int numLabels = CifarLoader.NUM_LABELS;
+    protected static int batchSize = 32;
     protected static int iterations = 1;
-    protected static int seed = 123;
+    protected static int seed = 42;
+    protected static Random rng = new Random(seed);
+    protected static int nWorkers = 6;
+    protected static List<String> labels = new CifarLoader().getLabels();
 
     public static void main(String[] args) throws Exception {
         int listenerFreq = batchSize;
@@ -64,7 +67,8 @@ public class CifarSpark {
         log.info("Load train data....");
         JavaPairRDD<String,PortableDataStream> sparkData = sc.binaryFiles(CifarLoader.TRAINPATH.toString());
         JavaPairRDD<Text, BytesWritable> filesAsBytes = sparkData.mapToPair(new FilesAsBytesFunction());
-        JavaPairRDD<Double, DataSet> trainData = filesAsBytes.mapToPair(new CanovaByteDataSetFunction(0, CifarLoader.NUM_LABELS, batchSize, CifarLoader.BYTEFILELEN));
+        JavaPairRDD<Double, DataSet> trainData = filesAsBytes.mapToPair(
+                new CanovaByteDataSetFunction(0, CifarLoader.NUM_LABELS, batchSize, CifarLoader.BYTEFILELEN));
 
         JavaRDD<DataSet> train = trainData.map(new Function<Tuple2<Double, DataSet>, DataSet>() {
             @Override
@@ -76,25 +80,33 @@ public class CifarSpark {
         train.cache();
 
         log.info("Build model....");
-        MultiLayerNetwork network = new LRNModel(HEIGHT, WIDTH, outputNum, CHANNELS, seed, iterations).init();
+        MultiLayerNetwork network = new LRNModel(HEIGHT, WIDTH, CHANNELS, numLabels, seed, iterations).init();
         network.setListeners(Arrays.asList((IterationListener) new ScoreIterationListener(listenerFreq)));
 
+        //Setup parameter averaging
+        ParameterAveragingTrainingMaster tm = new ParameterAveragingTrainingMaster.Builder(nWorkers)
+                .workerPrefetchNumBatches(0)
+                .saveUpdater(true)
+                .averagingFrequency(5)
+                .batchSizePerWorker(batchSize)
+                .build();
+
         //Create Spark multi layer network from configuration
-        SparkDl4jMultiLayer sparkNetwork = new SparkDl4jMultiLayer(sc, network,
-                new ParameterAveragingTrainingMaster(true,Runtime.getRuntime().availableProcessors(),5,1,0));
+        SparkDl4jMultiLayer sparkNetwork = new SparkDl4jMultiLayer(sc, network,tm);
 
         log.info("Train model...");
 
-        for (int i = 0; i < epochs; i++) {
-            sparkNetwork.fit(train);
-            System.out.println("----- Epoch " + i + " complete -----");
-        }
+//        for (int i = 0; i < epochs; i++) {
+        sparkNetwork.fit(train);
+//        System.out.println("----- Epoch " + i + " complete -----");
+//        }
 
         train.unpersist();
 
         sparkData = sc.binaryFiles(CifarLoader.TESTPATH.toString());
         filesAsBytes = sparkData.mapToPair(new FilesAsBytesFunction());
-        JavaPairRDD<Double, DataSet> testData = filesAsBytes.mapToPair(new CanovaByteDataSetFunction(0, CifarLoader.NUM_LABELS, batchSize, CifarLoader.BYTEFILELEN));
+        JavaPairRDD<Double, DataSet> testData = filesAsBytes.mapToPair(
+                new CanovaByteDataSetFunction(0, CifarLoader.NUM_LABELS, batchSize, CifarLoader.BYTEFILELEN));
 
         JavaRDD<DataSet> test = testData.map(new Function<Tuple2<Double, DataSet>, DataSet>() {
             @Override
@@ -107,7 +119,7 @@ public class CifarSpark {
 
         log.info("Eval model...");
 
-        Evaluation evalActual = sparkNetwork.evaluate(test);
+        Evaluation evalActual = sparkNetwork.evaluate(test, labels);
         log.info(evalActual.stats());
         test.unpersist();
 

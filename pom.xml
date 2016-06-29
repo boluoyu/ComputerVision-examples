@@ -18,7 +18,7 @@
         <jackson.version>2.5.1</jackson.version>
         <scala.version>2.10.4</scala.version>
         <scala.binary.version>2.11</scala.binary.version>
-        <spark.version>1.5.2</spark.version>
+        <spark.version>1.6.0</spark.version>
         <jackson.version>2.4.4</jackson.version>
     </properties>
 

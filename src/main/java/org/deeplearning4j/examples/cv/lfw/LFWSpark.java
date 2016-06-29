@@ -3,7 +3,9 @@ package org.deeplearning4j.examples.cv.lfw;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.canova.api.io.labels.ParentPathLabelGenerator;
 import org.canova.image.loader.LFWLoader;
+import org.deeplearning4j.AlexNet;
 import org.deeplearning4j.datasets.canova.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.iterator.impl.LFWDataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
@@ -46,8 +48,8 @@ public class LFWSpark {
 
     protected static final Logger log = LoggerFactory.getLogger(LFWSpark.class);
 
-    protected static final int HEIGHT = 40; // original is 250
-    protected static final int WIDTH = 40;
+    protected static final int HEIGHT = 100; // original is 250
+    protected static final int WIDTH = 100;
     protected static final int CHANNELS = 3;
     protected static final int outputNum = LFWLoader.NUM_LABELS;
     protected static final int numSamples = 50; //LFWLoader.SUB_NUM_IMAGES - 4;
@@ -55,11 +57,13 @@ public class LFWSpark {
     protected static int iterations = 1;
     protected static int seed = 123;
     protected static boolean useSubset = false;
+    protected static double splitTrainTest = 0.8;
 
     public static void main(String[] args) throws Exception {
 
         int listenerFreq = batchSize;
         int epochs = 1;
+        int nWorkers = 6;
 
         // Setup SparkContext
         SparkConf sparkConf = new SparkConf()
@@ -70,7 +74,8 @@ public class LFWSpark {
         JavaSparkContext sc = new JavaSparkContext(sparkConf);
 
         log.info("Load data....");
-        DataSetIterator lfw = new LFWDataSetIterator(batchSize, numSamples, new int[]{HEIGHT, WIDTH, CHANNELS}, outputNum, useSubset, true, 1, new Random(seed));
+        DataSetIterator lfw = new LFWDataSetIterator(batchSize, numSamples, new int[]{HEIGHT, WIDTH, CHANNELS}, outputNum, useSubset, new ParentPathLabelGenerator(), true, splitTrainTest, null, 255, new Random(seed));
+        List<String> labels = lfw.getLabels();
         List<DataSet> data = new ArrayList<>();
         while(lfw.hasNext()){
             data.add(lfw.next());
@@ -79,83 +84,32 @@ public class LFWSpark {
         JavaRDD<DataSet> sparkDataTrain = sc.parallelize(data);
 
         log.info("Build model....");
-        MultiLayerConfiguration.Builder builder = new NeuralNetConfiguration.Builder()
-                .seed(seed)
-                .iterations(iterations)
-                .activation("relu")
-                .weightInit(WeightInit.XAVIER)
-                .gradientNormalization(GradientNormalization.RenormalizeL2PerLayer)
-                .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                .learningRate(0.01)
-                .momentum(0.9)
-                .regularization(true)
-                .updater(Updater.ADAGRAD)
-                .useDropConnect(true)
-                .list()
-                .layer(0, new ConvolutionLayer.Builder(4, 4)
-                        .name("cnn1")
-                        .nIn(CHANNELS)
-                        .stride(1, 1)
-                        .nOut(20)
-                        .build())
-                .layer(1, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{2, 2})
-                        .name("pool1")
-                        .build())
-                .layer(2, new ConvolutionLayer.Builder(3, 3)
-                        .name("cnn2")
-                        .stride(1, 1)
-                        .nOut(40)
-                        .build())
-                .layer(3, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{2, 2})
-                        .name("pool2")
-                        .build())
-                .layer(2, new ConvolutionLayer.Builder(3, 3)
-                        .name("cnn3")
-                        .stride(1, 1)
-                        .nOut(60)
-                        .build())
-                .layer(3, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{2, 2})
-                        .name("pool3")
-                        .build())
-                .layer(2, new ConvolutionLayer.Builder(2, 2)
-                        .name("cnn3")
-                        .stride(1, 1)
-                        .nOut(80)
-                        .build())
-                .layer(4, new DenseLayer.Builder()
-                        .name("ffn1")
-                        .nOut(160)
-                        .dropOut(0.5)
-                        .build())
-                .layer(5, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
-                        .nOut(outputNum)
-                        .activation("softmax")
-                        .build())
-                .backprop(true).pretrain(false)
-                .cnnInputSize(HEIGHT, WIDTH, CHANNELS);
-
-        MultiLayerConfiguration conf = builder.build();
-        MultiLayerNetwork network = new MultiLayerNetwork(conf);
+        MultiLayerNetwork network = new AlexNet(HEIGHT, WIDTH, CHANNELS, outputNum, seed, iterations).init();
+        network.init();
         network.setListeners(Arrays.asList((IterationListener) new ScoreIterationListener(listenerFreq)));
 
+        //Setup parameter averaging
+        ParameterAveragingTrainingMaster tm = new ParameterAveragingTrainingMaster.Builder(nWorkers)
+                .workerPrefetchNumBatches(0)
+                .saveUpdater(true)
+                .averagingFrequency(5)
+                .batchSizePerWorker(batchSize)
+                .build();
+
         //Create Spark multi layer network from configuration
-        SparkDl4jMultiLayer sparkNetwork = new SparkDl4jMultiLayer(sc, network,
-                new ParameterAveragingTrainingMaster(true,Runtime.getRuntime().availableProcessors(),5,1,0));
+        SparkDl4jMultiLayer sparkNetwork = new SparkDl4jMultiLayer(sc, network, tm);
 
         log.info("Train model...");
-        for (int i = 0; i < epochs; i++) {
-            sparkNetwork.fit(sparkDataTrain);
-            System.out.println("----- Epoch " + i + " complete -----");
-        }
+        sparkNetwork.fit(sparkDataTrain);
 
         log.info("Eval model...");
-        lfw = new LFWDataSetIterator(batchSize, numSamples, new int[]{HEIGHT, WIDTH, CHANNELS}, outputNum, useSubset, false, 1, new Random(seed));
+        lfw = new LFWDataSetIterator(batchSize, numSamples, new int[]{HEIGHT, WIDTH, CHANNELS}, outputNum, useSubset,  new ParentPathLabelGenerator(), false, splitTrainTest, null, 255, new Random(seed));
         data = new ArrayList<>();
         while(lfw.hasNext()){
             data.add(lfw.next());
         }
         JavaRDD<DataSet> sparkDataTest = sc.parallelize(data);
-        Evaluation evalActual = sparkNetwork.evaluate(sparkDataTest);
+        Evaluation evalActual = sparkNetwork.evaluate(sparkDataTest, labels);
         log.info(evalActual.stats());
 
 

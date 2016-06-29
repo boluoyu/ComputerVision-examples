@@ -58,31 +58,29 @@ public class MSRA_CFWSpark {
 
     public final static int NUM_IMAGES = 2215; // some are 50 and others 700
     public final static int NUM_LABELS = 10;
-    public final static int HEIGHT = 40;
-    public final static int WIDTH = 40; // size varies
+    public final static int HEIGHT = 100;
+    public final static int WIDTH = 100; // size varies
     public final static int CHANNELS = 3;
 
     // values to pass in from command line when compiled, esp running remotely
     @Option(name="--numExamples",usage="Number of examples",aliases="-nE")
-    protected int numExamples = 100;
+    protected int numExamples = 96;
     @Option(name="--batchSize",usage="Batch size",aliases="-b")
-    protected int batchSize = 1;
+    protected int batchSize = 32;
     @Option(name="--epochs",usage="Number of epochs",aliases="-ep")
     protected int epochs = 5;
     @Option(name="--iter",usage="Number of iterations",aliases="-i")
-    protected int iterations = 2;
+    protected int iterations = 1;
     @Option(name="--numLabels",usage="Number of categories",aliases="-nL")
     protected int numLabels = 4;
     @Option(name="--split",usage="Percent to split for training",aliases="-split")
-    protected double split = 0.5;
+    protected double splitTrainTest = 0.8;
 
     public void run(String[] args) throws Exception{
         // standard vars
         int seed = 123;
         int listenerFreq = 1;
-        int numBatches = NUM_IMAGES/batchSize;
-        double splitTrainTest = 0.8;
-        int nCores = 6; //Number of CPU cores to use for training
+        int nWorkers = 6; //Number of CPU cores to use for training
 
         // Parse command line arguments if they exist
         CmdLineParser parser = new CmdLineParser(this);
@@ -105,7 +103,7 @@ public class MSRA_CFWSpark {
 
         log.info("Load data....");
         ////////////// Load Gender folders /////////////
-        File mainPath = new File(BaseImageLoader.BASE_DIR, "gender_class/*");
+        File mainPath = new File(BaseImageLoader.BASE_DIR, "gender_class");
         //////////////////////////////////////////////
 
         ////////////// Load all 10 folders /////////////
@@ -153,6 +151,7 @@ public class MSRA_CFWSpark {
         while(dataIter.hasNext()){
             allData.add(dataIter.next());
         }
+        List<String> labels = recordReader.getLabels();
         JavaRDD<DataSet> sparkDataTrain = sc.parallelize(allData);
         sparkDataTrain.persist(StorageLevel.MEMORY_ONLY());
         //////////////////////////////////////////////
@@ -162,14 +161,19 @@ public class MSRA_CFWSpark {
         model.init();
         model.setListeners(Arrays.asList((IterationListener) new ScoreIterationListener(listenerFreq)));
 
+        //Setup parameter averaging
+        ParameterAveragingTrainingMaster tm = new ParameterAveragingTrainingMaster.Builder(nWorkers)
+                .workerPrefetchNumBatches(0)
+                .saveUpdater(true)
+                .averagingFrequency(5)
+                .batchSizePerWorker(batchSize)
+                .build();
+
         //Create Spark multi layer network from configuration
-        SparkDl4jMultiLayer sparkNetwork = new SparkDl4jMultiLayer(sc, model,
-                new ParameterAveragingTrainingMaster(true,Runtime.getRuntime().availableProcessors(),5,1,0));
+        SparkDl4jMultiLayer sparkNetwork = new SparkDl4jMultiLayer(sc, model, tm);
 
         log.info("Train model....");
-        for(int i = 0; i < epochs; i++){
-            sparkNetwork.fit(sparkDataTrain);
-        }
+        sparkNetwork.fit(sparkDataTrain);
         sparkDataTrain.unpersist();
 
         log.info("Evaluate model....");
@@ -184,7 +188,7 @@ public class MSRA_CFWSpark {
         }
         JavaRDD<DataSet> sparkDataTest = sc.parallelize(allData);
         sparkDataTest.persist(StorageLevel.MEMORY_ONLY());
-        Evaluation evalActual = sparkNetwork.evaluate(sparkDataTest);
+        Evaluation evalActual = sparkNetwork.evaluate(sparkDataTest, labels);
         log.info(evalActual.stats());
 
         sparkDataTest.unpersist();
