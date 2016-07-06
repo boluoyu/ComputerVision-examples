@@ -20,6 +20,8 @@
         <scala.binary.version>2.11</scala.binary.version>
         <spark.version>1.6.0</spark.version>
         <jackson.version>2.4.4</jackson.version>
+        <maven-shade-plugin.version>2.4.3</maven-shade-plugin.version>
+        <exec-maven-plugin.version>1.4.0</exec-maven-plugin.version>
     </properties>
 
     <repositories>
@@ -195,7 +197,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>1.4.0</version>
+                <version>${exec-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -210,7 +212,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>1.6</version>
+                <version>${maven-shade-plugin.version}</version>
                 <configuration>
                     <createDependencyReducedPom>true</createDependencyReducedPom>
                     <filters>
