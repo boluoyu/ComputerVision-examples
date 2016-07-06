@@ -51,7 +51,6 @@ public class CifarSpark {
     protected static int iterations = 1;
     protected static int seed = 42;
     protected static Random rng = new Random(seed);
-    protected static int nWorkers = 6;
     protected static List<String> labels = new CifarLoader().getLabels();
 
     public static void main(String[] args) throws Exception {
@@ -84,7 +83,7 @@ public class CifarSpark {
         network.setListeners(Arrays.asList((IterationListener) new ScoreIterationListener(listenerFreq)));
 
         //Setup parameter averaging
-        ParameterAveragingTrainingMaster tm = new ParameterAveragingTrainingMaster.Builder(nWorkers)
+        ParameterAveragingTrainingMaster trainMaster = new ParameterAveragingTrainingMaster.Builder(batchSize)
                 .workerPrefetchNumBatches(0)
                 .saveUpdater(true)
                 .averagingFrequency(5)
@@ -92,7 +91,7 @@ public class CifarSpark {
                 .build();
 
         //Create Spark multi layer network from configuration
-        SparkDl4jMultiLayer sparkNetwork = new SparkDl4jMultiLayer(sc, network,tm);
+        SparkDl4jMultiLayer sparkNetwork = new SparkDl4jMultiLayer(sc, network, trainMaster);
 
         log.info("Train model...");
 

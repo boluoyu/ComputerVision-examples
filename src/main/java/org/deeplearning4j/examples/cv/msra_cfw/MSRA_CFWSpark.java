@@ -80,7 +80,6 @@ public class MSRA_CFWSpark {
         // standard vars
         int seed = 123;
         int listenerFreq = 1;
-        int nWorkers = 6; //Number of CPU cores to use for training
 
         // Parse command line arguments if they exist
         CmdLineParser parser = new CmdLineParser(this);
@@ -162,7 +161,7 @@ public class MSRA_CFWSpark {
         model.setListeners(Arrays.asList((IterationListener) new ScoreIterationListener(listenerFreq)));
 
         //Setup parameter averaging
-        ParameterAveragingTrainingMaster tm = new ParameterAveragingTrainingMaster.Builder(nWorkers)
+        ParameterAveragingTrainingMaster trainMaster = new ParameterAveragingTrainingMaster.Builder(batchSize)
                 .workerPrefetchNumBatches(0)
                 .saveUpdater(true)
                 .averagingFrequency(5)
@@ -170,7 +169,7 @@ public class MSRA_CFWSpark {
                 .build();
 
         //Create Spark multi layer network from configuration
-        SparkDl4jMultiLayer sparkNetwork = new SparkDl4jMultiLayer(sc, model, tm);
+        SparkDl4jMultiLayer sparkNetwork = new SparkDl4jMultiLayer(sc, model, trainMaster);
 
         log.info("Train model....");
         sparkNetwork.fit(sparkDataTrain);

@@ -63,7 +63,6 @@ public class LFWSpark {
 
         int listenerFreq = batchSize;
         int epochs = 1;
-        int nWorkers = 6;
 
         // Setup SparkContext
         SparkConf sparkConf = new SparkConf()
@@ -89,7 +88,7 @@ public class LFWSpark {
         network.setListeners(Arrays.asList((IterationListener) new ScoreIterationListener(listenerFreq)));
 
         //Setup parameter averaging
-        ParameterAveragingTrainingMaster tm = new ParameterAveragingTrainingMaster.Builder(nWorkers)
+        ParameterAveragingTrainingMaster trainMaster = new ParameterAveragingTrainingMaster.Builder(batchSize)
                 .workerPrefetchNumBatches(0)
                 .saveUpdater(true)
                 .averagingFrequency(5)
@@ -97,8 +96,7 @@ public class LFWSpark {
                 .build();
 
         //Create Spark multi layer network from configuration
-        SparkDl4jMultiLayer sparkNetwork = new SparkDl4jMultiLayer(sc, network, tm);
-
+        SparkDl4jMultiLayer sparkNetwork = new SparkDl4jMultiLayer(sc, network, trainMaster);
         log.info("Train model...");
         sparkNetwork.fit(sparkDataTrain);
 
