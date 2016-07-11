@@ -1,4 +1,4 @@
-package org.deeplearning4j.examples.cv.cifar;
+package org.deeplearning4j.examples.cv.cifar10;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -16,7 +16,6 @@ import org.deeplearning4j.examples.cv.TestModels.CifarCaffeModels;
 import org.deeplearning4j.examples.cv.TestModels.CifarModeEnum;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.Updater;
-import org.deeplearning4j.nn.conf.inputs.InvalidInputTypeException;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.api.IterationListener;

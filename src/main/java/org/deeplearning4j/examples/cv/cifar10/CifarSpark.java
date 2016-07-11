@@ -1,4 +1,4 @@
-package org.deeplearning4j.examples.cv.cifar;
+package org.deeplearning4j.examples.cv.cifar10;
 
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.Text;

@@ -1,4 +1,4 @@
-package org.deeplearning4j.examples.cv.lfw;
+package org.deeplearning4j.examples.cv.labeledFacesWild;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;

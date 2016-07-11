@@ -1,4 +1,4 @@
-package org.deeplearning4j.examples.cv.msra_cfw;
+package org.deeplearning4j.examples.cv.msCelebrityFaceRecognition;
 
 
 import org.datavec.api.io.filters.BalancedPathFilter;
@@ -33,9 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-/**
- * WORK IN PROGRESS Face Classification
- *
+/***
  * Microsoft Research MSRA-CFW Celebrity Faces Dataset
  *
  * This is an image classification example built from scratch. You can swap out your own dataset with this structure.
@@ -50,8 +48,8 @@ import java.util.Random;
  * Checkout this link for more information and to access data: http://research.microsoft.com/en-us/projects/msra-cfw/
  */
 
-public class MSRA_CFW {
-    private static final Logger log = LoggerFactory.getLogger(MSRA_CFW.class);
+public class CelebrityFaceClassification {
+    private static final Logger log = LoggerFactory.getLogger(CelebrityFaceClassification.class);
 
     // Based on small sample dataset
     public final static int height = 100;
@@ -169,7 +167,7 @@ public class MSRA_CFW {
     }
 
     public static void main(String[] args) throws Exception {
-        new MSRA_CFW().run(args);
+        new CelebrityFaceClassification().run(args);
     }
 
 }

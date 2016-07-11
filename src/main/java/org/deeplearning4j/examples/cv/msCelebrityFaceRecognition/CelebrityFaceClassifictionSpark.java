@@ -1,4 +1,4 @@
-package org.deeplearning4j.examples.cv.msra_cfw;
+package org.deeplearning4j.examples.cv.msCelebrityFaceRecognition;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
@@ -36,8 +36,8 @@ import java.util.*;
  * MSRA_CFW Spark Version
  */
 
-public class MSRA_CFWSpark {
-    protected static final Logger log = LoggerFactory.getLogger(MSRA_CFWSpark.class);
+public class CelebrityFaceClassifictionSpark {
+    protected static final Logger log = LoggerFactory.getLogger(CelebrityFaceClassifictionSpark.class);
 
 
     public final static int NUM_IMAGES = 2215; // some are 50 and others 700
@@ -180,7 +180,7 @@ public class MSRA_CFWSpark {
     }
 
     public static void main(String[] args) throws Exception {
-        new MSRA_CFWSpark().run(args);
+        new CelebrityFaceClassifictionSpark().run(args);
     }
 
 }

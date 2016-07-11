@@ -1,4 +1,4 @@
-package org.deeplearning4j.examples.cv.animals;
+package org.deeplearning4j.examples.cv.animalRecognition;
 
 import org.apache.commons.io.FilenameUtils;
 import org.datavec.api.io.filters.BalancedPathFilter;
@@ -29,7 +29,6 @@ import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.*;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;

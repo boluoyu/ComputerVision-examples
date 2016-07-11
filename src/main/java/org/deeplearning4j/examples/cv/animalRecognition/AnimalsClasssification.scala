@@ -1,4 +1,4 @@
-package org.deeplearning4j.examples.cv.animals
+package org.deeplearning4j.examples.cv.animalRecognition
 
 import java.io.{File, IOException}
 import java.util.{Arrays, Random}
