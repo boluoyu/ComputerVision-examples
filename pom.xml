@@ -12,9 +12,9 @@
 
     <properties>
         <nd4j.backend>nd4j-native</nd4j.backend>
-        <nd4j.version>0.4-rc3.11-SNAPSHOT</nd4j.version>
-        <dl4j.version>0.4-rc3.11-SNAPSHOT</dl4j.version>
-        <canova.version>0.0.0.17-SNAPSHOT</canova.version>
+        <nd4j.version>0.4.1-SNAPSHOT</nd4j.version>
+        <dl4j.version>0.4.1-SNAPSHOT</dl4j.version>
+        <datavec.version>0.4.1-SNAPSHOT</datavec.version>
         <jackson.version>2.5.1</jackson.version>
         <scala.version>2.10.4</scala.version>
         <scala.binary.version>2.11</scala.binary.version>
@@ -107,9 +107,9 @@
             <version>2.32</version>
         </dependency>
         <dependency>
-            <artifactId>canova-nd4j-image</artifactId>
-            <groupId>org.nd4j</groupId>
-            <version>${canova.version}</version>
+            <artifactId>datavec-api</artifactId>
+            <groupId>org.datavec</groupId>
+            <version>${datavec.version}</version>
         </dependency>
         <dependency>
             <groupId>org.nd4j</groupId>
@@ -132,13 +132,6 @@
             <version>19.0</version>
         </dependency>
 
-        <!-- load predefined models -->
-        <dependency>
-            <groupId>org.deeplearning4j</groupId>
-            <artifactId>model-sanctuary</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-
         <!-- spark examples -->
         <dependency>
             <artifactId>dl4j-spark_${scala.binary.version}</artifactId>
@@ -152,9 +145,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <artifactId>canova-spark_${scala.binary.version}</artifactId>
-            <groupId>org.nd4j</groupId>
-            <version>${canova.version}</version>
+            <artifactId>datavec-spark_${scala.binary.version}</artifactId>
+            <groupId>org.datavec</groupId>
+            <version>${datavec.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>

@@ -1,16 +1,16 @@
 package org.deeplearning4j.examples.cv.animals;
 
 import org.apache.commons.io.FilenameUtils;
-import org.canova.api.io.filters.BalancedPathFilter;
-import org.canova.api.io.labels.ParentPathLabelGenerator;
-import org.canova.api.split.FileSplit;
-import org.canova.api.split.InputSplit;
-import org.canova.image.loader.BaseImageLoader;
-import org.canova.image.loader.NativeImageLoader;
-import org.canova.image.recordreader.ImageRecordReader;
-import org.canova.image.transform.*;
-import org.deeplearning4j.AlexNet;
-import org.deeplearning4j.datasets.canova.RecordReaderDataSetIterator;
+import org.datavec.api.io.filters.BalancedPathFilter;
+import org.datavec.api.io.labels.ParentPathLabelGenerator;
+import org.datavec.api.split.FileSplit;
+import org.datavec.api.split.InputSplit;
+import org.datavec.image.loader.NativeImageLoader;
+import org.datavec.image.recordreader.ImageRecordReader;
+import org.datavec.image.transform.FlipImageTransform;
+import org.datavec.image.transform.ImageTransform;
+import org.datavec.image.transform.WarpImageTransform;
+import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.iterator.MultipleEpochsIterator;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
@@ -62,7 +62,8 @@ public class AnimalsClassification {
     protected static int iterations = 1;
     protected static int epochs = 20;
     protected static double splitTrainTest = 0.8;
-
+    protected static int normalizeVal = 255;
+    protected static int nCores = 8;
 
     public static void main(String[] args) throws Exception {
 
@@ -168,7 +169,7 @@ public class AnimalsClassification {
          *  - dataIter = a generator that only loads one batch at a time into memory to save memory
          *  - trainIter = uses MultipleEpochsIterator to ensure model runs through the data for all epochs
          **/
-        ImageRecordReader recordReader = new ImageRecordReader(height, width, channels, new ParentPathLabelGenerator(), 255);
+        ImageRecordReader recordReader = new ImageRecordReader(height, width, channels, new ParentPathLabelGenerator(), normalizeVal);
         DataSetIterator dataIter;
         MultipleEpochsIterator trainIter;
 
@@ -177,7 +178,7 @@ public class AnimalsClassification {
         for(ImageTransform transform: transforms) {
             recordReader.initialize(trainData, transform);
             dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
-            trainIter = new MultipleEpochsIterator(epochs, dataIter);
+            trainIter = new MultipleEpochsIterator(epochs, dataIter, nCores);
             network.fit(trainIter);
         }
 

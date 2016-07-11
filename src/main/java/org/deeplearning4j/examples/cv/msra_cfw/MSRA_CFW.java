@@ -1,21 +1,20 @@
 package org.deeplearning4j.examples.cv.msra_cfw;
 
 
-import org.canova.api.io.filters.BalancedPathFilter;
-import org.canova.api.io.labels.ParentPathLabelGenerator;
-import org.canova.api.records.reader.RecordReader;
-import org.canova.api.split.FileSplit;
-import org.canova.api.split.InputSplit;
-import org.canova.image.loader.BaseImageLoader;
-import org.canova.image.loader.NativeImageLoader;
-import org.canova.image.recordreader.ImageRecordReader;
-import org.canova.image.transform.FlipImageTransform;
-import org.canova.image.transform.ImageTransform;
-import org.canova.image.transform.WarpImageTransform;
-import org.deeplearning4j.AlexNet;
-import org.deeplearning4j.datasets.canova.RecordReaderDataSetIterator;
+import org.datavec.api.io.filters.BalancedPathFilter;
+import org.datavec.api.io.labels.ParentPathLabelGenerator;
+import org.datavec.api.split.FileSplit;
+import org.datavec.api.split.InputSplit;
+import org.datavec.image.loader.BaseImageLoader;
+import org.datavec.image.loader.NativeImageLoader;
+import org.datavec.image.recordreader.ImageRecordReader;
+import org.datavec.image.transform.FlipImageTransform;
+import org.datavec.image.transform.ImageTransform;
+import org.datavec.image.transform.WarpImageTransform;
+import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.iterator.MultipleEpochsIterator;
 import org.deeplearning4j.eval.Evaluation;
+import org.deeplearning4j.examples.cv.TestModels.AlexNet;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.optimize.api.IterationListener;
 import org.deeplearning4j.optimize.listeners.ParamAndGradientIterationListener;
@@ -55,9 +54,9 @@ public class MSRA_CFW {
     private static final Logger log = LoggerFactory.getLogger(MSRA_CFW.class);
 
     // Based on small sample dataset
-    public final static int HEIGHT = 100;
-    public final static int WIDTH = 100; // size varies
-    public final static int CHANNELS = 3;
+    public final static int height = 100;
+    public final static int width = 100; // size varies
+    public final static int channels = 3;
     protected static long seed = 42;
     protected static Random rng = new Random(seed);
     protected static int listenerFreq = 1;
@@ -101,7 +100,6 @@ public class MSRA_CFW {
             numLabels = 10;
 //            mainPath = new File(BaseImageLoader.BASE_DIR, "thumbnails_features_deduped_sample"); // 10 labels
             mainPath = new File(BaseImageLoader.BASE_DIR, "data/mrsa-cfw"); // 10 labels
-
         }
         // Organize  & limit data file paths
         FileSplit fileSplit = new FileSplit(mainPath, NativeImageLoader.ALLOWED_FORMATS, new Random(123));
@@ -120,14 +118,14 @@ public class MSRA_CFW {
 
 
         // Define how data will load into net - use below if no transforms
-//        RecordReader recordReader = new ImageRecordReader(HEIGHT, WIDTH, CHANNELS, new ParentPathLabelGenerator());
+//        RecordReader recordReader = new ImageRecordReader(height, width, channels, new ParentPathLabelGenerator());
 //        recordReader.initialize(trainData);
 //        DataSetIterator dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
 //        MultipleEpochsIterator trainIter = new MultipleEpochsIterator(epochs, dataIter);
 
         log.info("Build model....");
         // AlexNet is one type of model provided in model sanctuary. Building your own is also an option
-        MultiLayerNetwork network = new AlexNet(HEIGHT, WIDTH, CHANNELS, numLabels, seed, iterations).init();
+        MultiLayerNetwork network = new AlexNet(height, width, channels, numLabels, seed, iterations).init();
         network.init();
 
         // Set listeners
@@ -147,7 +145,7 @@ public class MSRA_CFW {
 //        network.setListeners(new ScoreIterationListener(listenerFreq), paramListener);
 
         log.info("Train model....");
-        ImageRecordReader recordReader = new ImageRecordReader(HEIGHT, WIDTH, CHANNELS, new ParentPathLabelGenerator(), 255);
+        ImageRecordReader recordReader = new ImageRecordReader(height, width, channels, new ParentPathLabelGenerator(), 255);
         DataSetIterator dataIter;
         MultipleEpochsIterator trainIter;
 

@@ -38,17 +38,18 @@ import org.nd4j.linalg.lossfunctions.LossFunctions
   */
 object AnimalsClasssification {
 
-  val seed = 42
   val height = 50
   val width = 50
   val channels = 3
   val numExamples = 80
   val numLabels = 4
   val batchSize = 20
+  val seed = 42
   val listenerFreq = 1
   val iterations = 1
   val epochs = 5
   val splitTrainTest = 0.8
+  val nCores = 8; // num of cores on machine to paralize data load
   val rng = new Random(seed)
 
   def main(args: Array[String]) {
@@ -134,7 +135,7 @@ object AnimalsClasssification {
     network.setListeners(new ScoreIterationListener(listenerFreq))
 
     // Define how to load data into network
-    val recordReader: ImageRecordReader = new ImageRecordReader(width, height, channels, new ParentPathLabelGenerator())
+    val recordReader: ImageRecordReader = new ImageRecordReader(height, width, channels, new ParentPathLabelGenerator())
     var dataIter: DataSetIterator = null
     var trainIter: MultipleEpochsIterator = null
 
@@ -142,7 +143,7 @@ object AnimalsClasssification {
     for (transform <- transforms) {
       recordReader.initialize(trainData, transform)
       dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels)
-      trainIter = new MultipleEpochsIterator(epochs, dataIter)
+      trainIter = new MultipleEpochsIterator(epochs, dataIter, nCores)
       network.fit(trainIter)
     }
 

@@ -4,26 +4,18 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.storage.StorageLevel;
-import org.canova.api.io.filters.BalancedPathFilter;
-import org.canova.api.io.labels.ParentPathLabelGenerator;
-import org.canova.api.records.reader.RecordReader;
-import org.canova.api.split.FileSplit;
-import org.canova.api.split.InputSplit;
-import org.canova.image.loader.BaseImageLoader;
-import org.canova.image.loader.NativeImageLoader;
-import org.canova.image.recordreader.ImageRecordReader;
-import org.deeplearning4j.AlexNet;
-import org.deeplearning4j.datasets.canova.RecordReaderDataSetIterator;
+import org.datavec.api.io.filters.BalancedPathFilter;
+import org.datavec.api.io.labels.ParentPathLabelGenerator;
+import org.datavec.api.records.reader.RecordReader;
+import org.datavec.api.split.FileSplit;
+import org.datavec.api.split.InputSplit;
+import org.datavec.image.loader.BaseImageLoader;
+import org.datavec.image.loader.NativeImageLoader;
+import org.datavec.image.recordreader.ImageRecordReader;
+import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
-import org.deeplearning4j.nn.api.OptimizationAlgorithm;
-import org.deeplearning4j.nn.conf.GradientNormalization;
-import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
-import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
-import org.deeplearning4j.nn.conf.Updater;
-import org.deeplearning4j.nn.conf.distribution.NormalDistribution;
-import org.deeplearning4j.nn.conf.layers.*;
+import org.deeplearning4j.examples.cv.TestModels.AlexNet;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
-import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.api.IterationListener;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 
@@ -32,35 +24,27 @@ import org.deeplearning4j.spark.impl.paramavg.ParameterAveragingTrainingMaster;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
-import org.nd4j.linalg.api.buffer.DataBuffer;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
-import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 /**
- * WORK IN PROGRESS Face Classification Spark Version
- *
- * Checkout the basic MSRA_CFW for more information.
- *
- * Not working due to recent changes in core
- *
+ * MSRA_CFW Spark Version
  */
 
 public class MSRA_CFWSpark {
     protected static final Logger log = LoggerFactory.getLogger(MSRA_CFWSpark.class);
 
+
     public final static int NUM_IMAGES = 2215; // some are 50 and others 700
     public final static int NUM_LABELS = 10;
-    public final static int HEIGHT = 100;
-    public final static int WIDTH = 100; // size varies
-    public final static int CHANNELS = 3;
+    public static int height = 100;
+    public static int width = 100; // size varies
+    public static int channels = 3;
 
     // values to pass in from command line when compiled, esp running remotely
     @Option(name="--numExamples",usage="Number of examples",aliases="-nE")
@@ -143,7 +127,7 @@ public class MSRA_CFWSpark {
         InputSplit trainData = inputSplit[0];
         InputSplit testData = inputSplit[1];
 
-        RecordReader recordReader = new ImageRecordReader(HEIGHT, WIDTH, CHANNELS, new ParentPathLabelGenerator(), 255);
+        RecordReader recordReader = new ImageRecordReader(height, width, channels, new ParentPathLabelGenerator(), 255);
         recordReader.initialize(trainData);
         DataSetIterator dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
         List<DataSet> allData = new ArrayList<>(numExamples);
@@ -156,7 +140,7 @@ public class MSRA_CFWSpark {
         //////////////////////////////////////////////
 
         log.info("Build model....");
-        MultiLayerNetwork model = new AlexNet(HEIGHT, WIDTH, CHANNELS, numLabels, seed, iterations).init();
+        MultiLayerNetwork model = new AlexNet(height, width, channels, numLabels, seed, iterations).init();
         model.init();
         model.setListeners(Arrays.asList((IterationListener) new ScoreIterationListener(listenerFreq)));
 

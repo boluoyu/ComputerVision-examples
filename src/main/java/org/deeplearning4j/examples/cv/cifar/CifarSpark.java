@@ -3,33 +3,32 @@ package org.deeplearning4j.examples.cv.cifar;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaDoubleRDD;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.DoubleFunction;
 import org.apache.spark.input.PortableDataStream;
-import org.canova.image.loader.CifarLoader;
 import org.canova.spark.functions.data.FilesAsBytesFunction;
-import org.deeplearning4j.datasets.iterator.impl.LFWDataSetIterator;
+import org.datavec.image.loader.CifarLoader;
 import org.deeplearning4j.eval.Evaluation;
-import org.deeplearning4j.examples.cv.cifar.TestModels.LRNModel;
+import org.deeplearning4j.examples.cv.TestModels.CifarCaffeModels;
+import org.deeplearning4j.examples.cv.TestModels.CifarModeEnum;
+import org.deeplearning4j.nn.api.OptimizationAlgorithm;
+import org.deeplearning4j.nn.conf.Updater;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.api.IterationListener;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.spark.canova.CanovaByteDataSetFunction;
 import org.deeplearning4j.spark.impl.multilayer.SparkDl4jMultiLayer;
 import org.deeplearning4j.spark.impl.paramavg.ParameterAveragingTrainingMaster;
-import org.nd4j.linalg.api.buffer.DataBuffer;
 import org.nd4j.linalg.dataset.DataSet;
-import org.nd4j.linalg.factory.Nd4j;
 import org.apache.spark.api.java.function.Function;
+import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -37,15 +36,14 @@ import java.util.Random;
 /**
  * CIFAR-10 - Spark version
  *
- * Not working due to recent changes in core
  */
 
 public class CifarSpark {
     protected static final Logger log = LoggerFactory.getLogger(CifarSpark.class);
 
-    protected static final int HEIGHT = 32;
-    protected static final int WIDTH = 32;
-    protected static final int CHANNELS = 3;
+    protected static final int height = 32;
+    protected static final int width = 32;
+    protected static final int channels = 3;
     protected static final int numLabels = CifarLoader.NUM_LABELS;
     protected static int batchSize = 32;
     protected static int iterations = 1;
@@ -79,7 +77,28 @@ public class CifarSpark {
         train.cache();
 
         log.info("Build model....");
-        MultiLayerNetwork network = new LRNModel(HEIGHT, WIDTH, CHANNELS, numLabels, seed, iterations).init();
+
+
+        MultiLayerNetwork network = new CifarCaffeModels(
+                height,
+                width,
+                channels,
+                numLabels,
+                seed,
+                iterations,
+                null,
+                new int[]{32, 32, 64},
+                "relu",
+                WeightInit.XAVIER,
+                OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT,
+                Updater.ADAM,
+                LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD,
+                1e-3,
+                2e-3,
+                true,
+                4e-3,
+                0.9).buildNetwork(CifarModeEnum.OTHER);
+
         network.setListeners(Arrays.asList((IterationListener) new ScoreIterationListener(listenerFreq)));
 
         //Setup parameter averaging
