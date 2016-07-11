@@ -6,11 +6,11 @@
 
 Repository for Deeplearning4J computer vision neural net examples. 
 
-- Animals Classification
-- Cifar10
-- Labeled Faces in the Wild (LFW)
+- Animals Classification (Java & Scala examples)
+- Cifar10 (Standard & Spark examples)
+- Labeled Faces in the Wild | LFW (Standard & Spark examples)
 - MNIST 
-- Microsoft's Celebrity Faces 
+- Microsoft's Celebrity Faces (Standard & Spark examples)
 
 Make sure your setup your pom to point to the latest code on [Github](http://deeplearning4j.org/snapshot). These examples are in development and collaboration is welcome.
 
