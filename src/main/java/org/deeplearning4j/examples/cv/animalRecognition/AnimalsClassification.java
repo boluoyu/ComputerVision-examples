@@ -23,8 +23,13 @@ import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.util.NetSaverLoaderUtils;
+import org.nd4j.linalg.dataset.BalanceMinibatches;
 import org.nd4j.linalg.dataset.DataSet;
+import org.nd4j.linalg.dataset.ExistingMiniBatchDataSetIterator;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
+import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
+import org.nd4j.linalg.dataset.api.preprocessor.NormalizerMinMaxScaler;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,10 +64,10 @@ public class AnimalsClassification {
     protected static Random rng = new Random(seed);
     protected static int listenerFreq = 1;
     protected static int iterations = 1;
-    protected static int epochs = 20;
+    protected static int epochs = 5;
     protected static double splitTrainTest = 0.8;
-    protected static int normalizeVal = 255;
-    protected static int nCores = 8;
+    protected static int maxPixelVal = 255;
+    protected static int nCores = 2;
 
     public static void main(String[] args) throws Exception {
 
@@ -82,17 +87,23 @@ public class AnimalsClassification {
          *  - inputSplit = define train and test split
          **/
         InputSplit[] inputSplit = fileSplit.sample(pathFilter, numExamples*(1+splitTrainTest),  numExamples*(1-splitTrainTest));
-        InputSplit trainData = inputSplit[0];
+        InputSplit  trainData = inputSplit[0];
         InputSplit testData = inputSplit[1];
 
         /**
          * Data Setup -> transformation
-         *  - *Transform = how to tranform images and generate large dataset to train on
+         *  - Transform = how to tranform images and generate large dataset to train on
          **/
         ImageTransform flipTransform1 = new FlipImageTransform(rng);
         ImageTransform flipTransform2 = new FlipImageTransform(new Random (123));
         ImageTransform warpTransform = new WarpImageTransform(rng, 42);
-        List<ImageTransform> transforms = Arrays.asList(new ImageTransform[] {null, flipTransform1, warpTransform, flipTransform2});
+        List<ImageTransform> transforms = Arrays.asList(new ImageTransform[] {flipTransform1, warpTransform, flipTransform2});
+
+        /**
+         * Data Setup -> normalization
+         *  - how to normalize images and generate large dataset to train on
+         **/
+        DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
 
         log.info("Build model....");
         // Tiny model configuration
@@ -104,7 +115,7 @@ public class AnimalsClassification {
                 .gradientNormalization(GradientNormalization.RenormalizeL2PerLayer)
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .updater(Updater.NESTEROVS)
-                .learningRate(0.01)
+                .learningRate(0.0001)
                 .momentum(0.9)
                 .regularization(true)
                 .l2(0.04)
@@ -168,15 +179,37 @@ public class AnimalsClassification {
          *  - dataIter = a generator that only loads one batch at a time into memory to save memory
          *  - trainIter = uses MultipleEpochsIterator to ensure model runs through the data for all epochs
          **/
-        ImageRecordReader recordReader = new ImageRecordReader(height, width, channels, new ParentPathLabelGenerator(), normalizeVal);
+        ImageRecordReader recordReader = new ImageRecordReader(height, width, channels, new ParentPathLabelGenerator());
         DataSetIterator dataIter;
         MultipleEpochsIterator trainIter;
 
-        // Train with transformations
+
         log.info("Train model....");
+        // Train without transformrations
+        recordReader.initialize(trainData, null);
+        dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
+        scaler.fit(dataIter);
+        scaler.transform(dataIter);
+
+        // TODO build balanced mini batches results into iterator to pass into Multiepochsiterator
+//        BalanceMinibatches balanceMinibatches = BalanceMinibatches.builder()
+//                .dataSetIterator(dataIter).miniBatchSize(batchSize).numLabels(new File("data").list().length)
+//                .rootDir(new File("minibatches")).rootSaveDir(new File("minibatchessave"))
+//                .build();
+//        balanceMinibatches.balance();
+//
+//        balanceMinibatches.getDataSetIterator();
+//        DataSetIterator existingIterator = new ExistingMiniBatchDataSetIterator(new File("minibatchessave"));
+
+        trainIter = new MultipleEpochsIterator(epochs, dataIter, nCores);
+        network.fit(trainIter);
+
+        // Train with transformations
         for(ImageTransform transform: transforms) {
+            System.out.print("\nTraining on transformation: " + transform.getClass().toString() + "\n\n");
             recordReader.initialize(trainData, transform);
             dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
+            scaler.transform(dataIter);
             trainIter = new MultipleEpochsIterator(epochs, dataIter, nCores);
             network.fit(trainIter);
         }

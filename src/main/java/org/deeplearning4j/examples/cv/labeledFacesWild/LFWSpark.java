@@ -34,7 +34,7 @@ public class LFWSpark {
     protected static final int height = 100; // original is 250
     protected static final int width = 100;
     protected static final int channels = 3;
-    protected static final int numLabels = LFWLoader.NUM_LABELS;
+    protected static final int numLabels = LFWLoader.SUB_NUM_LABELS; // LFWLoader.NUM_LABELS;
     protected static final int numSamples = 50; //LFWLoader.SUB_NUM_IMAGES - 4;
     protected static int batchSize = 10;
     protected static int iterations = 1;
