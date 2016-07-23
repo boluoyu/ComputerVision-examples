@@ -69,7 +69,7 @@ public class Cifar {
     protected static double l2;
     protected static double momentum;
 
-    public static CifarModeEnum networkType = CifarModeEnum.BATCH_NORM;
+    public static CifarModeEnum networkType = CifarModeEnum.TORCH_NIN;
 
     public static void main(String[] args) throws IOException {
         MultiLayerNetwork network;
@@ -84,7 +84,7 @@ public class Cifar {
         log.info("Build model....");
 
         switch (networkType) {
-            case QUICK:
+            case CAFFE_QUICK:
                 epochs = 1;
                 trainBatchSize = 100;
                 testBatchSize = 100;
@@ -101,7 +101,7 @@ public class Cifar {
                 l2 = 4e-3;
                 momentum = 0.9;
                 break;
-            case FULL_SIGMOID:
+            case CAFFE_FULL_SIGMOID:
                 trainBatchSize = 100;
                 testBatchSize = 100;
                 epochs = 130;
@@ -118,7 +118,7 @@ public class Cifar {
                 l2 = 4e-3;
                 momentum = 0.9;
                 break;
-            case BATCH_NORM:
+            case CAFFE_BATCH_NORM:
                 trainBatchSize = 100;
                 testBatchSize = 1000;
                 epochs = 120;
@@ -133,6 +133,40 @@ public class Cifar {
                 biasLearningRate = Double.NaN;
                 regularization = false;
                 l2 = 0.0;
+                momentum = 0.9;
+                break;
+            case TORCH_NIN:
+                trainBatchSize = 128;
+                testBatchSize = 128;
+                epochs = 300;
+                nIn = null;
+                nOut = null;
+                activation = "relu";
+                weightInit = WeightInit.DISTRIBUTION;
+                optimizationAlgorithm = OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT;
+                updater = Updater.SGD;
+                lossFunctions = LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD;
+                learningRate = 1e-1;
+                biasLearningRate = Double.NaN;
+                regularization = true;
+                l2 = 5e-4;
+                momentum = 0.9;
+                break;
+            case TORCH_VGG:
+                trainBatchSize = 128;
+                testBatchSize = 128;
+                epochs = 300;
+                nIn = null;
+                nOut = null;
+                activation = "relu";
+                weightInit = WeightInit.RELU;
+                optimizationAlgorithm = OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT;
+                updater = Updater.SGD;
+                lossFunctions = LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD;
+                learningRate = 1e-1;
+                biasLearningRate = Double.NaN;
+                regularization = true;
+                l2 = 5e-4;
                 momentum = 0.9;
                 break;
             default:

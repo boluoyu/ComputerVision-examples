@@ -7,5 +7,5 @@ package org.deeplearning4j.examples.cv.TestModels;
  * Also defines whether its train, cross validation or test phase
  */
 public enum CifarModeEnum {
-    BATCH_NORM, FULL_SIGMOID, QUICK, OTHER;
+    CAFFE_BATCH_NORM, CAFFE_FULL_SIGMOID, CAFFE_QUICK, TORCH_NIN, TORCH_VGG, OTHER;
 }

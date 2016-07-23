@@ -3,7 +3,7 @@ package org.deeplearning4j.examples.cv.TestModels;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.*;
 import org.deeplearning4j.nn.conf.distribution.GaussianDistribution;
-import org.deeplearning4j.nn.conf.inputs.InvalidInputTypeException;
+import org.deeplearning4j.nn.conf.distribution.NormalDistribution;
 import org.deeplearning4j.nn.conf.layers.*;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
@@ -77,7 +77,7 @@ public class CifarCaffeModels {
     }
 
 
-    public MultiLayerConfiguration initQuick() {
+    public MultiLayerConfiguration caffeInitQuick() {
         MultiLayerConfiguration.Builder builder = new NeuralNetConfiguration.Builder()
                 .seed(seed)
                 .iterations(iterations)
@@ -137,7 +137,7 @@ public class CifarCaffeModels {
         return builder.build();
     }
 
-    public MultiLayerConfiguration initFull() {
+    public MultiLayerConfiguration caffeInitFull() {
         MultiLayerConfiguration.Builder builder = new NeuralNetConfiguration.Builder()
                 .seed(seed)
                 .iterations(iterations)
@@ -198,7 +198,7 @@ public class CifarCaffeModels {
 
     }
 
-    public MultiLayerConfiguration initBN() {
+    public MultiLayerConfiguration caffeInitBN() {
         MultiLayerConfiguration.Builder builder = new NeuralNetConfiguration.Builder()
                 .seed(seed)
                 .iterations(iterations)
@@ -333,16 +333,281 @@ public class CifarCaffeModels {
         conf = builder.build();
         return conf;
     }
+
+
+    public MultiLayerConfiguration torchInitNin(){
+        MultiLayerConfiguration.Builder builder = new NeuralNetConfiguration.Builder()
+                .seed(seed)
+                .activation(activation)
+                .updater(updater)
+                .weightInit(weightInit).dist(new NormalDistribution(0, 0.5))
+                .iterations(iterations)
+                .optimizationAlgo(optimizationAlgorithm)
+                .learningRate(learningRate)
+                .regularization(true).l2(l2)
+                .momentum(momentum)
+                .list()
+                .layer(0, new ConvolutionLayer.Builder(new int[]{5, 5}, new int[]{1, 1}, new int[]{2, 2})
+                        .name("cnn1")
+                        .nIn(channels)
+                        .nOut(192)
+                        .activation("identity")
+                        .build())
+                .layer(1, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(2, new ActivationLayer.Builder().build())
+                .layer(3, new ConvolutionLayer.Builder(new int[]{1, 1}, new int[]{1, 1})
+                        .name("cnn2")
+                        .nOut(160)
+                        .activation("identity")
+                        .build())
+                .layer(4, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(5, new ActivationLayer.Builder().build())
+                .layer(6, new ConvolutionLayer.Builder(new int[]{1, 1}, new int[]{1, 1})
+                        .name("cnn3")
+                        .nOut(96)
+                        .activation("identity")
+                        .build())
+                .layer(7, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(8, new ActivationLayer.Builder().build())
+                .layer(9, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{3, 3}, new int[]{2, 2})
+                        .name("maxpool1")
+                        .build())
+                .layer(10, new ConvolutionLayer.Builder(new int[]{5, 5}, new int[]{1, 1}, new int[]{2, 2})
+                        .name("cnn4")
+                        .nOut(192)
+                        .activation("identity")
+                        .dropOut(0.5)
+                        .build())
+                .layer(11, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(12, new ActivationLayer.Builder().build())
+                .layer(13, new ConvolutionLayer.Builder(new int[]{1, 1}, new int[]{1, 1})
+                        .name("cnn5")
+                        .nOut(192)
+                        .activation("identity")
+                        .build())
+                .layer(14, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(15, new ActivationLayer.Builder().build())
+                .layer(16, new ConvolutionLayer.Builder(new int[]{1, 1}, new int[]{1, 1})
+                        .name("cnn6")
+                        .nOut(192)
+                        .activation("identity")
+                        .build())
+                .layer(17, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(18, new ActivationLayer.Builder().build())
+                .layer(19, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{3, 3}, new int[]{2, 2})
+                        .name("maxpool2")
+                        .build())
+                .layer(20, new ConvolutionLayer.Builder(new int[]{3, 3}, new int[]{1, 1}, new int[]{1, 1})
+                        .name("cnn7")
+                        .nOut(192)
+                        .activation("identity")
+                        .dropOut(0.5)
+                        .build())
+                .layer(21, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(22, new ActivationLayer.Builder().build())
+                .layer(23, new ConvolutionLayer.Builder(new int[]{1, 1}, new int[]{1, 1})
+                        .name("cnn8")
+                        .nOut(192)
+                        .activation("identity")
+                        .build())
+                .layer(24, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(25, new ActivationLayer.Builder().build())
+                .layer(26, new ConvolutionLayer.Builder(new int[]{1, 1}, new int[]{1, 1})
+                        .name("cnn9")
+                        .nOut(10)
+                        .activation("identity")
+                        .build())
+                .layer(27, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(28, new ActivationLayer.Builder().build())
+                .layer(29, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.AVG, new int[]{6, 6}, new int[]{1, 1}) // should be 8,8
+                        .name("maxpool3")
+                        .build())
+                .layer(30, new OutputLayer.Builder(lossFunctions)
+                        .name("output")
+                        .nOut(numLabels)
+                        .activation("softmax")
+                        .build())
+                .backprop(true)
+                .pretrain(false)
+                .cnnInputSize(height, width, channels);
+
+        conf = builder.build();
+        return conf;
+
+
+    }
+
+    public MultiLayerConfiguration torchInitVGG() {
+        MultiLayerConfiguration.Builder builder = new NeuralNetConfiguration.Builder()
+                .seed(seed)
+                .activation(activation)
+                .updater(updater)
+                .weightInit(weightInit)
+                .iterations(iterations)
+                .optimizationAlgo(optimizationAlgorithm)
+                .learningRate(learningRate)
+                .regularization(true).l2(l2)
+                .momentum(momentum)
+                .list()
+                .layer(0, new ConvolutionLayer.Builder(new int[]{3, 3}, new int[]{1, 1}, new int[]{1, 1})
+                        .name("cnn1")
+                        .nIn(channels)
+                        .nOut(64)
+                        .activation("identity")
+                        .dropOut(0.3)
+                        .build())
+                .layer(1, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(2, new ActivationLayer.Builder().build())
+
+                .layer(3, new ConvolutionLayer.Builder(new int[]{3, 3}, new int[]{1, 1}, new int[]{1, 1})
+                        .name("cnn2")
+                        .nOut(64)
+                        .activation("identity")
+                        .build())
+                .layer(4, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(5, new ActivationLayer.Builder().build())
+                .layer(6, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{2, 2})
+                        .name("maxpool1")
+                        .build())
+                .layer(7, new ConvolutionLayer.Builder(new int[]{3, 3}, new int[]{1, 1}, new int[]{1, 1})
+                        .name("cnn3")
+                        .nOut(128)
+                        .activation("identity")
+                        .dropOut(0.4)
+                        .build())
+                .layer(8, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(9, new ActivationLayer.Builder().build())
+                .layer(10, new ConvolutionLayer.Builder(new int[]{3, 3}, new int[]{1, 1}, new int[]{1, 1})
+                        .name("cnn4")
+                        .nOut(128)
+                        .activation("identity")
+                        .build())
+                .layer(11, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(12, new ActivationLayer.Builder().build())
+                .layer(13, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{2, 2})
+                        .name("maxpool2")
+                        .build())
+                .layer(14, new ConvolutionLayer.Builder(new int[]{3, 3}, new int[]{1, 1}, new int[]{1, 1})
+                        .name("cnn5")
+                        .nOut(256)
+                        .activation("identity")
+                        .dropOut(0.4)
+                        .build())
+                .layer(15, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(16, new ActivationLayer.Builder().build())
+                .layer(17, new ConvolutionLayer.Builder(new int[]{3, 3}, new int[]{1, 1}, new int[]{1, 1})
+                        .name("cnn6")
+                        .nOut(256)
+                        .activation("identity")
+                        .dropOut(0.4)
+                        .build())
+                .layer(18, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(19, new ActivationLayer.Builder().build())
+                .layer(20, new ConvolutionLayer.Builder(new int[]{3, 3}, new int[]{1, 1}, new int[]{1, 1})
+                        .name("cnn7")
+                        .nOut(256)
+                        .activation("identity")
+                        .build())
+                .layer(21, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(22, new ActivationLayer.Builder().build())
+                .layer(23, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{2, 2})
+                        .name("maxpool3")
+                        .build())
+                .layer(24, new ConvolutionLayer.Builder(new int[]{3, 3}, new int[]{1, 1}, new int[]{1, 1})
+                        .name("cnn8")
+                        .nOut(512)
+                        .activation("identity")
+                        .dropOut(0.4)
+                        .build())
+                .layer(25, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(26, new ActivationLayer.Builder().build())
+                .layer(27, new ConvolutionLayer.Builder(new int[]{3, 3}, new int[]{1, 1}, new int[]{1, 1})
+                        .name("cnn9")
+                        .nOut(512)
+                        .activation("identity")
+                        .dropOut(0.4)
+                        .build())
+                .layer(28, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(29, new ActivationLayer.Builder().build())
+                .layer(30, new ConvolutionLayer.Builder(new int[]{3, 3}, new int[]{1, 1}, new int[]{1, 1})
+                        .name("cnn10")
+                        .nOut(512)
+                        .activation("identity")
+                        .build())
+                .layer(31, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(32, new ActivationLayer.Builder().build())
+                .layer(33, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{2, 2})
+                        .name("maxpool4")
+                        .build())
+                .layer(34, new ConvolutionLayer.Builder(new int[]{3, 3}, new int[]{1, 1}, new int[]{1, 1})
+                        .name("cnn11")
+                        .nOut(512)
+                        .activation("identity")
+                        .dropOut(0.4)
+                        .build())
+                .layer(35, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(36, new ActivationLayer.Builder().build())
+                .layer(37, new ConvolutionLayer.Builder(new int[]{3, 3}, new int[]{1, 1}, new int[]{1, 1})
+                        .name("cnn12")
+                        .nOut(512)
+                        .activation("identity")
+                        .dropOut(0.4)
+                        .build())
+                .layer(38, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(39, new ActivationLayer.Builder().build())
+                .layer(40, new ConvolutionLayer.Builder(new int[]{3, 3}, new int[]{1, 1}, new int[]{1, 1})
+                        .name("cnn13")
+                        .nOut(512)
+                        .activation("identity")
+                        .build())
+                .layer(41, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(42, new ActivationLayer.Builder().build())
+                .layer(43, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX, new int[]{2, 2})
+                        .name("maxpool5")
+                        .build())
+                .layer(44, new DenseLayer.Builder()
+                        .name("ffn1")
+                        .nOut(512)
+                        .activation("identity")
+                        .dropOut(0.5)
+                        .build())
+                .layer(45, new BatchNormalization.Builder().eps(1e-3).build())
+                .layer(46, new ActivationLayer.Builder().build())
+                .layer(47, new DenseLayer.Builder()
+                        .name("ffn2")
+                        .nOut(512)
+                        .dropOut(0.5)
+                        .build())
+                .layer(48, new OutputLayer.Builder(lossFunctions)
+                        .name("output")
+                        .nOut(numLabels)
+                        .activation("softmax")
+                        .build())
+                .backprop(true)
+                .pretrain(false)
+                .cnnInputSize(height, width, channels);
+
+        conf = builder.build();
+        return conf;
+
+    }
+
     public MultiLayerNetwork buildNetwork(CifarModeEnum networkType) {
         switch (networkType) {
-            case QUICK:
-                conf = initQuick();
+            case CAFFE_QUICK:
+                conf = caffeInitQuick();
                 break;
-            case FULL_SIGMOID:
-                conf = initFull();
+            case CAFFE_FULL_SIGMOID:
+                conf = caffeInitFull();
                 break;
-            case BATCH_NORM:
-                conf = initBN();
+            case CAFFE_BATCH_NORM:
+                conf = caffeInitBN();
+                break;
+            case TORCH_NIN:
+                conf = torchInitNin();
+                break;
+            case TORCH_VGG:
+                conf = torchInitVGG();
                 break;
             default:
                 conf = initOther();
