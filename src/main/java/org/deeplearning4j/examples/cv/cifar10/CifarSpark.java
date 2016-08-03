@@ -7,7 +7,7 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.input.PortableDataStream;
-import org.canova.spark.functions.data.FilesAsBytesFunction;
+import org.datavec.spark.functions.data.FilesAsBytesFunction;
 import org.datavec.image.loader.CifarLoader;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.examples.cv.TestModels.CifarCaffeModels;
@@ -18,9 +18,10 @@ import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.api.IterationListener;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
-import org.deeplearning4j.spark.canova.CanovaByteDataSetFunction;
+import org.deeplearning4j.spark.datavec.DataVecByteDataSetFunction;
 import org.deeplearning4j.spark.impl.multilayer.SparkDl4jMultiLayer;
 import org.deeplearning4j.spark.impl.paramavg.ParameterAveragingTrainingMaster;
+
 import org.nd4j.linalg.dataset.DataSet;
 import org.apache.spark.api.java.function.Function;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
@@ -65,7 +66,7 @@ public class CifarSpark {
         JavaPairRDD<String,PortableDataStream> sparkData = sc.binaryFiles(CifarLoader.TRAINPATH.toString());
         JavaPairRDD<Text, BytesWritable> filesAsBytes = sparkData.mapToPair(new FilesAsBytesFunction());
         JavaPairRDD<Double, DataSet> trainData = filesAsBytes.mapToPair(
-                new CanovaByteDataSetFunction(0, CifarLoader.NUM_LABELS, batchSize, CifarLoader.BYTEFILELEN));
+                new DataVecByteDataSetFunction(0, CifarLoader.NUM_LABELS, batchSize, CifarLoader.BYTEFILELEN));
 
         JavaRDD<DataSet> train = trainData.map(new Function<Tuple2<Double, DataSet>, DataSet>() {
             @Override
@@ -124,7 +125,7 @@ public class CifarSpark {
         sparkData = sc.binaryFiles(CifarLoader.TESTPATH.toString());
         filesAsBytes = sparkData.mapToPair(new FilesAsBytesFunction());
         JavaPairRDD<Double, DataSet> testData = filesAsBytes.mapToPair(
-                new CanovaByteDataSetFunction(0, CifarLoader.NUM_LABELS, batchSize, CifarLoader.BYTEFILELEN));
+                new DataVecByteDataSetFunction(0, CifarLoader.NUM_LABELS, batchSize, CifarLoader.BYTEFILELEN));
 
         JavaRDD<DataSet> test = testData.map(new Function<Tuple2<Double, DataSet>, DataSet>() {
             @Override
