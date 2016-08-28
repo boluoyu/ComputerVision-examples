@@ -4,17 +4,15 @@ import java.io.{File, IOException}
 import java.util.{Arrays, Random}
 
 import org.apache.commons.io.FilenameUtils
-import org.canova.api.io.filters.BalancedPathFilter
-import org.canova.api.io.labels.ParentPathLabelGenerator
-import org.canova.api.records.reader.RecordReader
-import org.canova.api.split.{FileSplit, InputSplit}
-import org.canova.image.loader.BaseImageLoader
-import org.canova.image.recordreader.ImageRecordReader
-import org.canova.image.transform.{WarpImageTransform, FlipImageTransform, ImageTransform}
-import org.deeplearning4j.datasets.canova.RecordReaderDataSetIterator
+import org.datavec.api.io.filters.BalancedPathFilter
+import org.datavec.api.io.labels.ParentPathLabelGenerator
+import org.datavec.api.split.{FileSplit, InputSplit}
+import org.datavec.image.loader.BaseImageLoader
+import org.datavec.image.recordreader.ImageRecordReader
+import org.datavec.image.transform.{WarpImageTransform, FlipImageTransform, ImageTransform}
+import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator
 import org.deeplearning4j.datasets.iterator.{MultipleEpochsIterator}
-import org.deeplearning4j.eval.Evaluation
 import org.deeplearning4j.nn.api.OptimizationAlgorithm
 import org.deeplearning4j.nn.conf.layers.{ConvolutionLayer, DenseLayer, LocalResponseNormalization, OutputLayer, SubsamplingLayer}
 import org.deeplearning4j.nn.conf.{GradientNormalization, MultiLayerConfiguration, NeuralNetConfiguration, Updater}
@@ -22,7 +20,6 @@ import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
 import org.deeplearning4j.nn.weights.WeightInit
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener
 import org.deeplearning4j.util.NetSaverLoaderUtils
-import org.nd4j.linalg.dataset.DataSet
 import org.nd4j.linalg.lossfunctions.LossFunctions
 
 /**

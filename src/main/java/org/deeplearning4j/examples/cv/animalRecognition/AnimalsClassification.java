@@ -189,7 +189,7 @@ public class AnimalsClassification {
         recordReader.initialize(trainData, null);
         dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
         scaler.fit(dataIter);
-        scaler.transform(dataIter);
+        scaler.transform((org.nd4j.linalg.dataset.api.DataSet) dataIter);
 
         // TODO build balanced mini batches results into iterator to pass into Multiepochsiterator
 //        BalanceMinibatches balanceMinibatches = BalanceMinibatches.builder()
@@ -209,7 +209,7 @@ public class AnimalsClassification {
             System.out.print("\nTraining on transformation: " + transform.getClass().toString() + "\n\n");
             recordReader.initialize(trainData, transform);
             dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
-            scaler.transform(dataIter);
+            scaler.transform((org.nd4j.linalg.dataset.api.DataSet) dataIter);
             trainIter = new MultipleEpochsIterator(epochs, dataIter, nCores);
             network.fit(trainIter);
         }
