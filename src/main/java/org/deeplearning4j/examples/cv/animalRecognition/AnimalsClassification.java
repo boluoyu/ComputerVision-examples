@@ -188,8 +188,7 @@ public class AnimalsClassification {
         // Train without transformrations
         recordReader.initialize(trainData, null);
         dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
-        scaler.fit(dataIter);
-        scaler.transform((org.nd4j.linalg.dataset.api.DataSet) dataIter);
+        dataIter.setPreProcessor(scaler);
 
         // TODO build balanced mini batches results into iterator to pass into Multiepochsiterator
 //        BalanceMinibatches balanceMinibatches = BalanceMinibatches.builder()
