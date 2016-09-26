@@ -50,7 +50,7 @@ public class DeepBigSimpleNet {
                 .momentum(0)
                 .list()
                 .layer(0, new DenseLayer.Builder()
-                        .nIn(height & width * channels)
+                        .nIn(height * width * channels)
                         .nOut(2500)
                         .activation("tanh") // TODO set A = 1.7159 and B = 0.6666
                         .weightInit(WeightInit.DISTRIBUTION)

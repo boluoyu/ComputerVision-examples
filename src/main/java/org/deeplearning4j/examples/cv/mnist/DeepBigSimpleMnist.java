@@ -1,5 +1,6 @@
 package org.deeplearning4j.examples.cv.mnist;
 
+import org.deeplearning4j.datasets.iterator.MultipleEpochsIterator;
 import org.deeplearning4j.datasets.iterator.impl.MnistDataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.examples.cv.TestModels.DeepBigSimpleNet;
@@ -24,7 +25,7 @@ public class DeepBigSimpleMnist {
 
     protected static final int height = 28;
     protected static final int width = 28;
-    protected static final int channels = 3;
+    protected static final int channels = 1;
 
     protected static int numLabels = 10;
     protected static int batchSize = 500;
@@ -38,7 +39,7 @@ public class DeepBigSimpleMnist {
 
 
         log.info("Load data....");
-        DataSetIterator mnistTrain = new MnistDataSetIterator(batchSize,true,12345);
+        DataSetIterator mnistTrain = new MultipleEpochsIterator(epochs, new MnistDataSetIterator(batchSize,true,12345));
         DataSetIterator mnistTest = new MnistDataSetIterator(batchSize,false,12345);
 
         log.info("Build model....");

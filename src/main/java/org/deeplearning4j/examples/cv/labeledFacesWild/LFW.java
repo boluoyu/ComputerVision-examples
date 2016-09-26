@@ -43,7 +43,7 @@ public class LFW {
     protected static final int width = 100;
     protected static final int channels = 3;
 
-    protected static int numExamples = LFWLoader.NUM_IMAGES; //LFWLoader.NUM_IMAGES;
+    protected static int numExamples = LFWLoader.NUM_IMAGES;
     protected static int numLabels = LFWLoader.SUB_NUM_LABELS;
     protected static int batchSize = 128;
     protected static boolean useSubset = true;

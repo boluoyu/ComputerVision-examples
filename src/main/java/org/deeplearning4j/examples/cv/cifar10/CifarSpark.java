@@ -35,10 +35,12 @@ import java.util.List;
 import java.util.Random;
 
 /**
+ * @Deprecated - Old version before May 2016. Many Spark revisions make this outdated.
  * CIFAR-10 - Spark version
  *
  */
 
+@Deprecated
 public class CifarSpark {
     protected static final Logger log = LoggerFactory.getLogger(CifarSpark.class);
 
@@ -63,7 +65,7 @@ public class CifarSpark {
         JavaSparkContext sc = new JavaSparkContext(sparkConf);
 
         log.info("Load train data....");
-        JavaPairRDD<String,PortableDataStream> sparkData = sc.binaryFiles(CifarLoader.TRAINPATH.toString());
+        JavaPairRDD<String,PortableDataStream> sparkData = sc.binaryFiles(CifarLoader.fullDir.toString());
         JavaPairRDD<Text, BytesWritable> filesAsBytes = sparkData.mapToPair(new FilesAsBytesFunction());
         JavaPairRDD<Double, DataSet> trainData = filesAsBytes.mapToPair(
                 new DataVecByteDataSetFunction(0, CifarLoader.NUM_LABELS, batchSize, CifarLoader.BYTEFILELEN));
@@ -122,7 +124,7 @@ public class CifarSpark {
 
         train.unpersist();
 
-        sparkData = sc.binaryFiles(CifarLoader.TESTPATH.toString());
+        sparkData = sc.binaryFiles(CifarLoader.fullDir.toString());
         filesAsBytes = sparkData.mapToPair(new FilesAsBytesFunction());
         JavaPairRDD<Double, DataSet> testData = filesAsBytes.mapToPair(
                 new DataVecByteDataSetFunction(0, CifarLoader.NUM_LABELS, batchSize, CifarLoader.BYTEFILELEN));

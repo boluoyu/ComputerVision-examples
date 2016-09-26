@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * @Deprecated - In development in dl4j-benchmarks. Once solid solution found it will be moved to examples
  * CIFAR-10
  *
  * Image dataset created by Alex Krizhevsky, Vinod Nair, and Geoffrey Hinton. The dataset inculdes 60K
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory;
  * Model: https://gist.github.com/mavenlin/e56253735ef32c3c296d
  *
  */
+@Deprecated
 public class Cifar {
     protected static final Logger log = LoggerFactory.getLogger(Cifar.class);
     protected static int height = 32;
@@ -69,7 +71,7 @@ public class Cifar {
     protected static double l2;
     protected static double momentum;
 
-    public static CifarModeEnum networkType = CifarModeEnum.TORCH_NIN;
+    public static CifarModeEnum networkType = CifarModeEnum.CAFFE_QUICK;
 
     public static void main(String[] args) throws IOException {
         MultiLayerNetwork network;
@@ -208,16 +210,16 @@ public class Cifar {
 
         network.setListeners(Arrays.asList((IterationListener) new ScoreIterationListener(listenerFreq)));
 
-        System.out.println("Train model...");
-        for(ImageTransform transform: transforms) {
-            MultipleEpochsIterator cifar = new MultipleEpochsIterator(epochs, new CifarDataSetIterator(batchSize, numTrainExamples, new int[]{height, width, channels}, numLabels, transform, normalizeValue, true), nCores);
-            network.fit(cifar);
-        }
-
-        log.info("Evaluate model....");
-        CifarDataSetIterator cifarTest = new CifarDataSetIterator(batchSize, numTestExamples, new int[] {height, width, channels}, normalizeValue, false);
-        Evaluation eval = network.evaluate(cifarTest);
-        System.out.println(eval.stats(true));
+//        System.out.println("Train model...");
+//        for(ImageTransform transform: transforms) {
+//            MultipleEpochsIterator cifar = new MultipleEpochsIterator(epochs, new CifarDataSetIterator(batchSize, numTrainExamples, new int[]{height, width, channels}, numLabels, transform, normalizeValue, true));
+//            network.fit(cifar);
+//        }
+//
+//        log.info("Evaluate model....");
+//        CifarDataSetIterator cifarTest = new CifarDataSetIterator(batchSize, numTestExamples, new int[] {height, width, channels}, normalizeValue, false);
+//        Evaluation eval = network.evaluate(cifarTest);
+//        System.out.println(eval.stats(true));
 
         log.info("****************Example finished********************");
 
