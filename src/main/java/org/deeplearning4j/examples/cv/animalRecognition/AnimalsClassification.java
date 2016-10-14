@@ -72,8 +72,9 @@ public class AnimalsClassification {
     protected static int listenerFreq = 1;
     protected static int iterations = 1;
     protected static int epochs = 5;
-    protected static double splitTrainTest = 0.8;
+    protected static double splitTrainTest = 0.7;
     protected static int nCores = 2;
+    protected static boolean save = false;
 
     public static void main(String[] args) throws Exception {
 
@@ -184,6 +185,7 @@ public class AnimalsClassification {
                 .seed(seed)
                 .iterations(iterations)
                 .regularization(false).l2(0.005) // tried 0.0001, 0.0005
+                .activation("relu")
                 .learningRate(0.0001) // tried 0.00001, 0.00005, 0.000001
                 .weightInit(WeightInit.XAVIER)
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
@@ -194,7 +196,6 @@ public class AnimalsClassification {
                         .nIn(channels)
                         .stride(1, 1)
                         .nOut(50) // tried 10, 20, 40, 50
-                        .activation("relu")
                         .build())
                 .layer(1, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
                         .kernelSize(2,2)
@@ -203,13 +204,12 @@ public class AnimalsClassification {
                 .layer(2, new ConvolutionLayer.Builder(5, 5)
                         .stride(1, 1)
                         .nOut(100) // tried 25, 50, 100
-                        .activation("relu")
                         .build())
                 .layer(3, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
                         .kernelSize(2,2)
                         .stride(2,2)
                         .build())
-                .layer(4, new DenseLayer.Builder().activation("relu")
+                .layer(4, new DenseLayer.Builder()
                         .nOut(500).build())
                 .layer(5, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
                         .nOut(numLabels)
@@ -238,7 +238,7 @@ public class AnimalsClassification {
         // Train without transformations
         recordReader.initialize(trainData, null);
         dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
-
+        scaler.fit(dataIter);
         dataIter.setPreProcessor(scaler);
         trainIter = new MultipleEpochsIterator(epochs, dataIter, nCores);
         network.fit(trainIter);
@@ -248,6 +248,7 @@ public class AnimalsClassification {
             System.out.print("\nTraining on transformation: " + transform.getClass().toString() + "\n\n");
             recordReader.initialize(trainData, transform);
             dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
+            scaler.fit(dataIter);
             dataIter.setPreProcessor(scaler);
             trainIter = new MultipleEpochsIterator(epochs, dataIter, nCores);
             network.fit(trainIter);
@@ -256,6 +257,7 @@ public class AnimalsClassification {
         log.info("Evaluate model....");
         recordReader.initialize(testData);
         dataIter = new RecordReaderDataSetIterator(recordReader, 20, 1, numLabels);
+        scaler.fit(dataIter);
         dataIter.setPreProcessor(scaler);
         Evaluation eval = network.evaluate(dataIter);
         log.info(eval.stats(true));
@@ -268,11 +270,12 @@ public class AnimalsClassification {
         String modelResult = predict.get(0);
         System.out.print("\nFor a single example that is labeled " + expectedResult+ " the model predicted " + modelResult + "\n\n");
 
-        log.info("Save model....");
-        String basePath = FilenameUtils.concat(System.getProperty("user.dir"), "src/main/resources/");
-        NetSaverLoaderUtils.saveNetworkAndParameters(network, basePath);
-        NetSaverLoaderUtils.saveUpdators(network, basePath);
-
+        if(save) {
+            log.info("Save model....");
+            String basePath = FilenameUtils.concat(System.getProperty("user.dir"), "src/main/resources/");
+            NetSaverLoaderUtils.saveNetworkAndParameters(network, basePath);
+            NetSaverLoaderUtils.saveUpdators(network, basePath);
+        }
         log.info("****************Example finished********************");
 
     }
