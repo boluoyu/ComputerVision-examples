@@ -47,6 +47,7 @@ import java.util.Random;
 import static org.bytedeco.javacpp.opencv_imgproc.COLOR_BGR2YCrCb;
 
 /**
+ * @Deprecated - moved to main examples repo
  * Animal Classification
  *
  * Example classification of photos from 4 different animals (bear, duck, deer, turtle).
@@ -58,10 +59,11 @@ import static org.bytedeco.javacpp.opencv_imgproc.COLOR_BGR2YCrCb;
  * Note: This is losely aligned to the scala example but differences are expected in development.
  */
 
+@Deprecated
 public class AnimalsClassification {
     protected static final Logger log = LoggerFactory.getLogger(AnimalsClassification.class);
-    protected static int height = 50;
-    protected static int width = 50;
+    protected static int height = 100;
+    protected static int width = 100;
     protected static int channels = 3;
     protected static int numExamples = 80;
     protected static int numLabels = 4;
@@ -71,8 +73,8 @@ public class AnimalsClassification {
     protected static Random rng = new Random(seed);
     protected static int listenerFreq = 1;
     protected static int iterations = 1;
-    protected static int epochs = 5;
-    protected static double splitTrainTest = 0.7;
+    protected static int epochs = 30;
+    protected static double splitTrainTest = 0.8;
     protected static int nCores = 2;
     protected static boolean save = false;
 
@@ -175,7 +177,7 @@ public class AnimalsClassification {
 //        MultiLayerNetwork network = new MultiLayerNetwork(confTiny);
 
         // Uncomment below to try AlexNet. Note change height and width to at least 100
-//        MultiLayerNetwork network = new AlexNet(height, width, channels, numLabels, seed, iterations).init();
+        MultiLayerNetwork network = new AlexNet(height, width, channels, numLabels, seed, iterations).init();
 
         /**
          * Revisde Lenet Model approach developed by ramgo2 achieves slightly above random
@@ -218,7 +220,7 @@ public class AnimalsClassification {
                 .backprop(true).pretrain(false)
                 .cnnInputSize(height, width, channels).build();
 
-        MultiLayerNetwork network = new MultiLayerNetwork(conf);
+//        MultiLayerNetwork network = new MultiLayerNetwork(conf);
 
         network.init();
         network.setListeners(new ScoreIterationListener(listenerFreq));
