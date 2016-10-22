@@ -143,7 +143,7 @@ public class CelebrityFaceClassification {
 //        network.setListeners(new ScoreIterationListener(listenerFreq), paramListener);
 
         log.info("Train model....");
-        ImageRecordReader recordReader = new ImageRecordReader(height, width, channels, new ParentPathLabelGenerator(), 255);
+        ImageRecordReader recordReader = new ImageRecordReader(height, width, channels, new ParentPathLabelGenerator());
         DataSetIterator dataIter;
         MultipleEpochsIterator trainIter;
 

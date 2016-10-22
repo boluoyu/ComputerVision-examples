@@ -177,7 +177,7 @@ public class AnimalsClassification {
 //        MultiLayerNetwork network = new MultiLayerNetwork(confTiny);
 
         // Uncomment below to try AlexNet. Note change height and width to at least 100
-        MultiLayerNetwork network = new AlexNet(height, width, channels, numLabels, seed, iterations).init();
+//        MultiLayerNetwork network = new AlexNet(height, width, channels, numLabels, seed, iterations).init();
 
         /**
          * Revisde Lenet Model approach developed by ramgo2 achieves slightly above random
@@ -220,7 +220,7 @@ public class AnimalsClassification {
                 .backprop(true).pretrain(false)
                 .cnnInputSize(height, width, channels).build();
 
-//        MultiLayerNetwork network = new MultiLayerNetwork(conf);
+        MultiLayerNetwork network = new MultiLayerNetwork(conf);
 
         network.init();
         network.setListeners(new ScoreIterationListener(listenerFreq));

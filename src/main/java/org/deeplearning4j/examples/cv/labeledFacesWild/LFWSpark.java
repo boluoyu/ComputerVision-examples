@@ -56,7 +56,7 @@ public class LFWSpark {
         JavaSparkContext sc = new JavaSparkContext(sparkConf);
 
         log.info("Load data....");
-        DataSetIterator lfw = new LFWDataSetIterator(batchSize, numSamples, new int[]{height, width, channels}, numLabels, useSubset, new ParentPathLabelGenerator(), true, splitTrainTest, null, 255, new Random(seed));
+        DataSetIterator lfw = new LFWDataSetIterator(batchSize, numSamples, new int[]{height, width, channels}, numLabels, useSubset, new ParentPathLabelGenerator(), true, splitTrainTest, null, new Random(seed));
         List<String> labels = lfw.getLabels();
         List<DataSet> data = new ArrayList<>();
         while(lfw.hasNext()){
@@ -84,7 +84,7 @@ public class LFWSpark {
         sparkNetwork.fit(sparkDataTrain);
 
         log.info("Eval model...");
-        lfw = new LFWDataSetIterator(batchSize, numSamples, new int[]{height, width, channels}, numLabels, useSubset,  new ParentPathLabelGenerator(), false, splitTrainTest, null, 255, new Random(seed));
+        lfw = new LFWDataSetIterator(batchSize, numSamples, new int[]{height, width, channels}, numLabels, useSubset,  new ParentPathLabelGenerator(), false, splitTrainTest, null, new Random(seed));
         data = new ArrayList<>();
         while(lfw.hasNext()){
             data.add(lfw.next());

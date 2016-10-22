@@ -127,7 +127,7 @@ public class CelebrityFaceClassifictionSpark {
         InputSplit trainData = inputSplit[0];
         InputSplit testData = inputSplit[1];
 
-        RecordReader recordReader = new ImageRecordReader(height, width, channels, new ParentPathLabelGenerator(), 255);
+        RecordReader recordReader = new ImageRecordReader(height, width, channels, new ParentPathLabelGenerator());
         recordReader.initialize(trainData);
         DataSetIterator dataIter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, numLabels);
         List<DataSet> allData = new ArrayList<>(numExamples);

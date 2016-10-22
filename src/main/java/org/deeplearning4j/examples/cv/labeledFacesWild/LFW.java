@@ -58,7 +58,7 @@ public class LFW {
     public static void main(String[] args) {
 
         log.info("Load data training data....");
-        LFWDataSetIterator lfw = new LFWDataSetIterator(batchSize, numExamples, new int[] {height, width, channels}, numLabels, useSubset, new ParentPathLabelGenerator(), true, splitTrainTest, null, normalizeVal, new Random(seed));
+        LFWDataSetIterator lfw = new LFWDataSetIterator(batchSize, numExamples, new int[] {height, width, channels}, numLabels, useSubset, new ParentPathLabelGenerator(), true, splitTrainTest, null, new Random(seed));
 
         log.info("Build model....");
         MultiLayerNetwork network = new DeepFaceVariant(height, width, channels, numLabels, seed, iterations).init();
@@ -70,7 +70,7 @@ public class LFW {
         network.fit(multiLFW);
 
         log.info("Load data testing data....");
-        lfw = new LFWDataSetIterator(batchSize, numExamples, new int[] {height, width, channels}, numLabels, useSubset, new ParentPathLabelGenerator(), false, splitTrainTest, null, normalizeVal, new Random(seed));
+        lfw = new LFWDataSetIterator(batchSize, numExamples, new int[] {height, width, channels}, numLabels, useSubset, new ParentPathLabelGenerator(), false, splitTrainTest, null, new Random(seed));
 
 
         log.info("Evaluate model....");
