@@ -52,7 +52,7 @@ public class AlexNet {
         // TODO split and link kernel maps on GPUs - 2nd, 4th, 5th convolution should only connect maps on the same gpu, 3rd connects to all in 2nd
         MultiLayerConfiguration.Builder conf = new NeuralNetConfiguration.Builder()
                 .seed(seed)
-                .weightInit(WeightInit.DISTRIBUTION)
+                .weightInit(WeightInit.XAVIER_LEGACY)
                 .dist(new NormalDistribution(0.0, 0.01))
                 .activation("relu")
                 .updater(Updater.NESTEROVS)
@@ -68,6 +68,7 @@ public class AlexNet {
                 .l2(5 * 1e-4)
                 .momentum(0.9)
                 .miniBatch(false)
+                .convolutionMode(ConvolutionMode.Truncate)
                 .list()
                 .layer(0, new ConvolutionLayer.Builder(new int[]{11, 11}, new int[]{4, 4}, new int[]{3, 3})
                         .name("cnn1")

@@ -72,7 +72,6 @@ public class CelebrityFaceClassification {
     protected double splitTrainTest = 0.8;
 
     public void run(String[] args) throws Exception{
-        Nd4j.dtype = DataBuffer.Type.DOUBLE;
 
         // Parse command line arguments if they exist
         CmdLineParser parser = new CmdLineParser(this);

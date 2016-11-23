@@ -19,10 +19,7 @@ import org.deeplearning4j.datasets.iterator.MultipleEpochsIterator;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.examples.cv.TestModels.AlexNet;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
-import org.deeplearning4j.nn.conf.GradientNormalization;
-import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
-import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
-import org.deeplearning4j.nn.conf.Updater;
+import org.deeplearning4j.nn.conf.*;
 import org.deeplearning4j.nn.conf.layers.*;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
@@ -122,12 +119,13 @@ public class AnimalsClassification {
                 .seed(seed)
                 .iterations(iterations)
                 .activation("relu")
-                .weightInit(WeightInit.XAVIER)
+                .weightInit(WeightInit.XAVIER_FAN_IN)
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .updater(Updater.NESTEROVS).momentum(0.9)
                 .learningRate(0.0001)
                 .regularization(true).l2(0.04)
 //                .useDropConnect(true)
+                .convolutionMode(ConvolutionMode.Truncate)
                 .list()
                 .layer(0, new ConvolutionLayer.Builder(5, 5)
                         .name("cnn1")
@@ -177,7 +175,7 @@ public class AnimalsClassification {
 //        MultiLayerNetwork network = new MultiLayerNetwork(confTiny);
 
         // Uncomment below to try AlexNet. Note change height and width to at least 100
-//        MultiLayerNetwork network = new AlexNet(height, width, channels, numLabels, seed, iterations).init();
+        MultiLayerNetwork network = new AlexNet(height, width, channels, numLabels, seed, iterations).init();
 
         /**
          * Revisde Lenet Model approach developed by ramgo2 achieves slightly above random
@@ -192,6 +190,7 @@ public class AnimalsClassification {
                 .weightInit(WeightInit.XAVIER)
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
                 .updater(Updater.RMSPROP).momentum(0.9)
+                .convolutionMode(ConvolutionMode.Truncate)
                 .list()
                 .layer(0, new ConvolutionLayer.Builder(5, 5)
                         //nIn and nOut specify depth. nIn here is the nChannels and nOut is the number of filters to be applied
@@ -220,7 +219,7 @@ public class AnimalsClassification {
                 .backprop(true).pretrain(false)
                 .cnnInputSize(height, width, channels).build();
 
-        MultiLayerNetwork network = new MultiLayerNetwork(conf);
+//        MultiLayerNetwork network = new MultiLayerNetwork(conf);
 
         network.init();
         network.setListeners(new ScoreIterationListener(listenerFreq));
